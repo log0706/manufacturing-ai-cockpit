@@ -1,0 +1,42 @@
+{
+  "name": "manufacturing-ai-cockpit",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "fugu:server": "tsx server/fuguReviewServer.ts",
+    "audit:beginner": "tsx scripts/auditBeginnerChoiceQuestions.ts",
+    "audit:questions": "tsx scripts/auditQuestionData.ts",
+    "audit:glossary": "tsx scripts/auditGlossaryCoverage.ts",
+    "typecheck": "tsc -b --pretty false",
+    "test": "npm run audit:questions && npm run audit:beginner && npm run audit:glossary",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "@vitejs/plugin-react": "^4.6.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "vite": "^7.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "eslint": "^9.29.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "express": "^5.2.1",
+    "globals": "^15.15.0",
+    "tsx": "^4.23.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.34.1"
+  },
+  "description": "Portfolio learning cockpit for manufacturing AI alignment, drills, and human approval boundaries."
+}
