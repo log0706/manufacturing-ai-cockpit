@@ -28,7 +28,7 @@ export const en: Dictionary = {
 
   shell: {
     brandName: "Manufacturing AI Cockpit",
-    brandTagline: "3–10 minutes of explanation practice a day",
+    brandTagline: "3–10 min of practice a day",
     sidebarNote:
       "Practice aligning assumptions, KPIs, and responsibility boundaries across AI specialists, the shop floor, and management.",
     progressTitle: "Progress",

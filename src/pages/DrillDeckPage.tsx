@@ -7,7 +7,8 @@ import type {
   UnknownReason,
   UserQuestionProgress,
 } from "../types";
-import { CautionBox, EmptyState, RedAccentButton, StatCard } from "../components/ui";
+import { CautionBox, EmptyState, LocaleContentNotice, RedAccentButton, StatCard } from "../components/ui";
+import { useLocale } from "../contexts/localeContext";
 import { GlossaryProvider } from "../components/GlossaryProvider";
 import { RichTextWithGlossary } from "../components/RichTextWithGlossary";
 import { QuestionGlossaryPanel } from "../components/QuestionGlossaryPanel";
@@ -142,6 +143,7 @@ export const DrillDeckPage = ({
   fuguReviewEndpoint: string;
   onHome: () => void;
 }) => {
+  const { t } = useLocale();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [phase, setPhase] = useState<CardPhase>("front");
   const [memo, setMemo] = useState("");
@@ -439,14 +441,13 @@ export const DrillDeckPage = ({
   if (!activeQuestions.length) {
     return (
       <section className="page trainingPage">
-        <EmptyState
-          title="苦手問題はまだありません"
-          text="今日の10問か3分トレーニングで0〜1点、または後で復習を押すとここに集まります。"
-        />
+        <EmptyState title={t.drill.emptyTitle} text={t.drill.emptyText} />
         <div className="trainingEmptyActions">
-          <RedAccentButton onClick={() => onStartTraining("daily10")}>今日の10問へ</RedAccentButton>
+          <RedAccentButton onClick={() => onStartTraining("daily10")}>
+            {t.drill.emptyAction}
+          </RedAccentButton>
           <RedAccentButton variant="secondary" onClick={onHome}>
-            ホームへ戻る
+            {t.common.home}
           </RedAccentButton>
         </div>
       </section>
@@ -475,10 +476,10 @@ export const DrillDeckPage = ({
       <div className="trainingTopBar">
         <div>
           <span className="eyebrow">{modeLabel[activeSession.mode]}</span>
-          <h1>1問ずつ、声に出して説明する。</h1>
+          <h1>{t.drill.sessionTitle}</h1>
         </div>
         <button className="plainTextButton" onClick={onHome} type="button">
-          Esc ホーム
+          {t.drill.escHome}
         </button>
       </div>
 
@@ -552,42 +553,63 @@ const TrainingLauncher = ({
 }: {
   onStartTraining: (mode: TrainingMode) => void;
   stats: TrainingStats;
-}) => (
-  <section className="page trainingPage">
-    <div className="pageHeader">
-      <span className="eyebrow">Training</span>
-      <h1>今すぐ回すカードを選ぶ。</h1>
-      <p>ホームからでも、ここからでも開始できます。</p>
-    </div>
-    <div className="homeStats">
-      <StatCard label="今日の回答数" value={`${stats.answeredToday}`} detail="この端末に保存" />
-      <StatCard label="今週の回答数" value={`${stats.weekAnswerCount}`} detail="月曜始まり" />
-      <StatCard label="苦手問題数" value={`${stats.weakCount}`} detail="0〜1点も含む" />
-    </div>
-    <div className="modeGrid">
-      <button className="modeCard" onClick={() => onStartTraining("daily10")} type="button">
-        <span>今日の10問</span>
-        <strong>毎日の標準セット。苦手・低評価・未回答を混ぜます。</strong>
-        <em>Start</em>
-      </button>
-      <button className="modeCard" onClick={() => onStartTraining("quick3")} type="button">
-        <span>3分トレーニング</span>
-        <strong>短く3問だけ。会議前の口慣らしに使います。</strong>
-        <em>3 Questions</em>
-      </button>
-      <button className="modeCard" onClick={() => onStartTraining("weakReview")} type="button">
-        <span>苦手復習</span>
-        <strong>苦手登録と0〜1点の問題だけを戻します。</strong>
-        <em>Review</em>
-      </button>
-      <button className="modeCard" onClick={() => onStartTraining("random")} type="button">
-        <span>ランダム</span>
-        <strong>全85問からランダムに10問。復習範囲を固定したくないときに。</strong>
-        <em>Random</em>
-      </button>
-    </div>
-  </section>
-);
+}) => {
+  const { locale, setLocale, t } = useLocale();
+  const modes: TrainingMode[] = ["daily10", "quick3", "weakReview", "random"];
+  // The 85-item explanation bank is Japanese-only, so the English locale states that
+  // plainly rather than opening a session whose cards the reader cannot follow.
+  const bankAvailable = locale === "ja";
+
+  return (
+    <section className="page trainingPage">
+      <div className="pageHeader">
+        <span className="eyebrow">Training</span>
+        <h1>{t.drill.topTitle}</h1>
+        <p>{t.drill.topLead}</p>
+      </div>
+      <div className="homeStats">
+        <StatCard
+          label={t.drill.statToday}
+          value={`${stats.answeredToday}`}
+          detail={t.drill.statTodayDetail}
+        />
+        <StatCard
+          label={t.drill.statWeek}
+          value={`${stats.weekAnswerCount}`}
+          detail={t.drill.statWeekDetail}
+        />
+        <StatCard
+          label={t.drill.statWeak}
+          value={`${stats.weakCount}`}
+          detail={t.drill.statWeakDetail}
+        />
+      </div>
+      {bankAvailable ? (
+        <div className="modeGrid">
+          {modes.map((mode) => (
+            <button
+              className="modeCard"
+              key={mode}
+              onClick={() => onStartTraining(mode)}
+              type="button"
+            >
+              <span>{t.drill.modes[mode].title}</span>
+              <strong>{t.drill.modes[mode].detail}</strong>
+              <em>{t.common.start}</em>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <LocaleContentNotice
+          title={t.drill.englishNoticeTitle}
+          body={t.drill.englishNoticeBody}
+          action={t.drill.englishNoticeAction}
+          onAction={() => setLocale("ja")}
+        />
+      )}
+    </section>
+  );
+};
 
 const ProgressSidePanel = ({
   completedCount,

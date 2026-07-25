@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ViewId } from "../types";
-import { viewDescriptions, viewLabels } from "../lib/labels";
+import { useT } from "../contexts/localeContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ProgressRing } from "./ui";
 
 const views: ViewId[] = [
@@ -24,55 +25,64 @@ export const AppShell = ({
   onChangeView: (view: ViewId) => void;
   children: ReactNode;
   progressPanel: ReactNode;
-}) => (
-  <div className="appShell">
-    <aside className="sidebar" aria-label="Main navigation">
-      <div className="brandBlock">
-        <div className="brandMark">AI</div>
-        <div>
-          <p className="brandName">Manufacturing AI Training</p>
-          <span>毎日3〜10分の説明練習</span>
+}) => {
+  const t = useT();
+
+  return (
+    <div className="appShell">
+      <aside className="sidebar" aria-label={t.a11y.mainNav}>
+        <div className="brandBlock">
+          <div className="brandMark" aria-hidden="true">
+            AI
+          </div>
+          <div className="brandText">
+            <p className="brandName">{t.shell.brandName}</p>
+            <span>{t.shell.brandTagline}</span>
+          </div>
         </div>
-      </div>
-      <nav className="navList">
+        <nav className="navList">
+          {views.map((view) => (
+            <button
+              key={view}
+              className={`navItem ${currentView === view ? "isActive" : ""}`}
+              onClick={() => onChangeView(view)}
+              aria-current={currentView === view ? "page" : undefined}
+              type="button"
+            >
+              <span>{t.nav.labels[view]}</span>
+              <small>{t.nav.descriptions[view]}</small>
+            </button>
+          ))}
+        </nav>
+        <LanguageSwitcher className="sidebarSwitcher" />
+        <div className="sidebarNote">
+          <p>{t.shell.sidebarNote}</p>
+        </div>
+      </aside>
+
+      <main className="mainStage">{children}</main>
+
+      <aside className="rightRail" aria-label={t.a11y.progressRail}>
+        {progressPanel}
+      </aside>
+
+      <nav className="mobileTabBar" aria-label={t.a11y.mobileNav}>
         {views.map((view) => (
           <button
             key={view}
-            className={`navItem ${currentView === view ? "isActive" : ""}`}
+            className={`mobileTab ${currentView === view ? "isActive" : ""}`}
             onClick={() => onChangeView(view)}
+            aria-current={currentView === view ? "page" : undefined}
             type="button"
           >
-            <span>{viewLabels[view]}</span>
-            <small>{viewDescriptions[view]}</small>
+            <span className="mobileTabDot" aria-hidden="true" />
+            {t.nav.labels[view]}
           </button>
         ))}
       </nav>
-      <div className="sidebarNote">
-        <p>診断士として、AI人材・現場・経営の前提、KPI、責任境界をそろえる練習に集中します。</p>
-      </div>
-    </aside>
-
-    <main className="mainStage">{children}</main>
-
-    <aside className="rightRail" aria-label="Progress">
-      {progressPanel}
-    </aside>
-
-    <nav className="mobileTabBar" aria-label="Mobile navigation">
-      {views.map((view) => (
-        <button
-          key={view}
-          className={`mobileTab ${currentView === view ? "isActive" : ""}`}
-          onClick={() => onChangeView(view)}
-          type="button"
-        >
-          <span className="mobileTabDot" aria-hidden="true" />
-          {viewLabels[view]}
-        </button>
-      ))}
-    </nav>
-  </div>
-);
+    </div>
+  );
+};
 
 export const ProgressPanel = ({
   metrics,
@@ -91,25 +101,29 @@ export const ProgressPanel = ({
   };
   streak: number;
 }) => {
+  const t = useT();
+
   const items = [
-    ["Knowledge", metrics.knowledge],
-    ["Structure", metrics.structure],
-    ["Process", metrics.process],
-    ["Risk", metrics.risk],
-    ["Explain", metrics.explain],
+    [t.metrics.knowledge, metrics.knowledge],
+    [t.metrics.structure, metrics.structure],
+    [t.metrics.process, metrics.process],
+    [t.metrics.risk, metrics.risk],
+    [t.metrics.explain, metrics.explain],
   ] as const;
 
   return (
     <div className="progressPanel">
       <div className="panelHeader">
-        <p>Progress</p>
-        <span>{streak} day streak</span>
+        <p>{t.shell.progressTitle}</p>
+        <span>{t.shell.streak(streak)}</span>
       </div>
       <div className="metricStack">
         {items.map(([label, value]) => (
           <div className="metricRow" key={label}>
-            <ProgressRing value={value} size={58} label={label} />
-            <div>
+            {/* No `label`: the metric name is visible text beside the ring, so an
+                sr-only copy would read the name twice. */}
+            <ProgressRing value={value} size={58} />
+            <div className="metricText">
               <strong>{label}</strong>
               <span>{value}%</span>
             </div>
@@ -118,13 +132,13 @@ export const ProgressPanel = ({
       </div>
       <div className="railSummary">
         <div>
-          <span>Concepts</span>
+          <span>{t.shell.concepts}</span>
           <strong>
             {metrics.completedConceptCount}/{metrics.totalConceptCount}
           </strong>
         </div>
         <div>
-          <span>Questions</span>
+          <span>{t.shell.questions}</span>
           <strong>
             {metrics.answeredCount}/{metrics.totalQuestionCount}
           </strong>

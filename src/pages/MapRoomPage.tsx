@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { conceptById } from "../data/concepts";
+import { localizedConceptById } from "../i18n/content";
 import { officialNames } from "../lib/officialNames";
 import { CautionBox, DomainBadge } from "../components/ui";
+import { useLocale } from "../contexts/localeContext";
 
 const coreLayers = [
   ["erp"],
@@ -14,19 +15,21 @@ const coreLayers = [
 const satelliteIds = ["aps", "scm", "wms", "iiot", "digital-twin", "digital-thread"];
 
 export const MapRoomPage = () => {
+  const { locale, t } = useLocale();
   const [selectedId, setSelectedId] = useState("mes");
+  const conceptById = localizedConceptById[locale];
   const selected = conceptById[selectedId];
 
   return (
     <section className="page mapPage">
       <div className="pageHeader">
-        <span className="eyebrow">Map Room</span>
-        <h1>AIは置き換えるのではなく、分断をつなぐ。</h1>
-        <p>ERP、MES/MOM、PLM、QMS、SCADA/PLC/OTの関係を一枚で確認します。</p>
+        <span className="eyebrow">{t.map.eyebrow}</span>
+        <h1>{t.map.title}</h1>
+        <p>{t.map.lead}</p>
       </div>
 
       <div className="mapLayout">
-        <div className="systemMap" aria-label="Manufacturing system map">
+        <div className="systemMap" aria-label={t.a11y.systemMap}>
           <div className="mapColumn">
             {coreLayers.map((layer, index) => (
               <div className="mapLayer" key={layer.join("-")}>
@@ -36,6 +39,7 @@ export const MapRoomPage = () => {
                       className={`mapNode ${selectedId === id ? "isActive" : ""}`}
                       key={id}
                       onClick={() => setSelectedId(id)}
+                      aria-pressed={selectedId === id}
                       type="button"
                     >
                       {conceptById[id].title}
@@ -52,6 +56,7 @@ export const MapRoomPage = () => {
                 className={`satelliteNode ${selectedId === id ? "isActive" : ""}`}
                 key={id}
                 onClick={() => setSelectedId(id)}
+                aria-pressed={selectedId === id}
                 type="button"
               >
                 {conceptById[id].title}
@@ -69,15 +74,15 @@ export const MapRoomPage = () => {
           <p className="leadText">{selected.oneLine}</p>
           <div className="detailList">
             <div>
-              <span>近い業務</span>
+              <span>{t.map.nearbyWork}</span>
               <p>{selected.departments.join(" / ")}</p>
             </div>
             <div>
-              <span>AIとの接点</span>
+              <span>{t.map.aiTouchpoint}</span>
               <p>{selected.aiTouchpoint}</p>
             </div>
             <div>
-              <span>見るべきKPI</span>
+              <span>{t.map.kpis}</span>
               <p>{selected.kpis.join(" / ")}</p>
             </div>
           </div>

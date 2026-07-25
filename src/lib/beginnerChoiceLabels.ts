@@ -1,5 +1,15 @@
 import type { BeginnerChoiceCategory, BeginnerChoiceMode } from "../types";
 
+/** Canonical category order, used to render category lists in either locale. */
+export const beginnerCategories: BeginnerChoiceCategory[] = [
+  "systems",
+  "departments",
+  "management_kpi",
+  "quality_maintenance_safety",
+  "ai_use_cases",
+  "poc_deployment",
+];
+
 export const beginnerChoiceCategoryLabels: Record<BeginnerChoiceCategory, string> = {
   systems: "システム基礎",
   departments: "部門・責任分界",

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AppShell, ProgressPanel } from "./components/AppShell";
+import { useT } from "./contexts/localeContext";
 import { useBeginnerChoiceProgress } from "./hooks/useBeginnerChoiceProgress";
 import { useProgress } from "./hooks/useProgress";
 import { useTrainingProgress } from "./hooks/useTrainingProgress";
@@ -14,6 +15,7 @@ import { ReviewVaultPage } from "./pages/ReviewVaultPage";
 import type { BeginnerChoiceCategory, BeginnerChoiceMode, TrainingMode, ViewId } from "./types";
 
 const App = () => {
+  const t = useT();
   const [currentView, setCurrentView] = useState<ViewId>("cockpit");
   const {
     progress,
@@ -122,7 +124,7 @@ const App = () => {
             trainingStats={training.stats}
             onStartTraining={startTraining}
             onResetTrainingProgress={() => {
-              if (window.confirm("この端末のv0.2学習データを削除します。よろしいですか？")) {
+              if (window.confirm(t.errors.resetTrainingConfirm)) {
                 training.resetTrainingProgress();
               }
             }}
@@ -151,8 +153,11 @@ const App = () => {
       }
     >
       {storageWriteFailed || training.storageWriteFailed || beginner.storageWriteFailed ? (
-        <div className="storageNotice" role="status">
-          進捗をこの端末に保存できません。画面上の学習は続けられますが、ブラウザ設定や空き容量を確認してください。
+        <div className="storageNotice" role="alert">
+          <span className="storageNoticeMark" aria-hidden="true">
+            !
+          </span>
+          <span>{t.errors.storageWriteFailed}</span>
         </div>
       ) : null}
       {page}
