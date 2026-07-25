@@ -1,0 +1,187 @@
+/**
+ * Unit tests for locale resolution and the localized content resolvers.
+ *
+ * Runs on plain Node via tsx — no DOM and no test runner — which is why
+ * `src/i18n/locale.ts` is kept pure and side-effect free.
+ */
+import {
+  DEFAULT_LOCALE,
+  localeFromSearch,
+  htmlLang,
+  normalizeLocale,
+  resolveInitialLocale,
+} from "../src/i18n/locale";
+import { dictionaryFor } from "../src/i18n";
+import { localizedConcepts, localizedScenarios, localizedDrills } from "../src/i18n/content";
+import { concepts } from "../src/data/concepts";
+
+let passed = 0;
+const failures: string[] = [];
+
+const check = (name: string, actual: unknown, expected: unknown) => {
+  const a = JSON.stringify(actual);
+  const b = JSON.stringify(expected);
+  if (a === b) {
+    passed += 1;
+    return;
+  }
+  failures.push(`${name}\n    expected: ${b}\n    actual:   ${a}`);
+};
+
+const ok = (name: string, condition: boolean) => check(name, condition, true);
+
+// --- normalizeLocale -------------------------------------------------------
+check("normalizeLocale('ja')", normalizeLocale("ja"), "ja");
+check("normalizeLocale('en')", normalizeLocale("en"), "en");
+check("normalizeLocale('EN') is case-insensitive", normalizeLocale("EN"), "en");
+check("normalizeLocale('  ja  ') trims", normalizeLocale("  ja  "), "ja");
+check("normalizeLocale('en-US') drops the region", normalizeLocale("en-US"), "en");
+check("normalizeLocale('ja-JP') drops the region", normalizeLocale("ja-JP"), "ja");
+check("normalizeLocale('en_GB') accepts underscores", normalizeLocale("en_GB"), "en");
+check("normalizeLocale('fr') is unsupported", normalizeLocale("fr"), null);
+check("normalizeLocale('') is no signal", normalizeLocale(""), null);
+check("normalizeLocale(null) is no signal", normalizeLocale(null), null);
+check("normalizeLocale(undefined) is no signal", normalizeLocale(undefined), null);
+check("normalizeLocale('zh-en') keeps the base subtag", normalizeLocale("zh-en"), null);
+
+// --- localeFromSearch ------------------------------------------------------
+check("localeFromSearch('?lang=en')", localeFromSearch("?lang=en"), "en");
+check("localeFromSearch('?lang=ja')", localeFromSearch("?lang=ja"), "ja");
+check("localeFromSearch with other params", localeFromSearch("?a=1&lang=en&b=2"), "en");
+check("localeFromSearch('?lang=fr') is ignored", localeFromSearch("?lang=fr"), null);
+check("localeFromSearch('') is no signal", localeFromSearch(""), null);
+check("localeFromSearch('?x=1') is no signal", localeFromSearch("?x=1"), null);
+
+// --- precedence: URL > stored > browser > default --------------------------
+check(
+  "URL beats both stored and browser",
+  resolveInitialLocale({ search: "?lang=en", stored: "ja", languages: ["ja-JP"] }),
+  "en",
+);
+check(
+  "URL beats stored in the other direction too",
+  resolveInitialLocale({ search: "?lang=ja", stored: "en", languages: ["en-US"] }),
+  "ja",
+);
+check(
+  "stored beats browser when there is no URL param",
+  resolveInitialLocale({ stored: "en", languages: ["ja-JP"] }),
+  "en",
+);
+check(
+  "browser is used when nothing is stored",
+  resolveInitialLocale({ languages: ["en-GB", "ja"] }),
+  "en",
+);
+check(
+  "unsupported browser languages are skipped, not fatal",
+  resolveInitialLocale({ languages: ["fr-FR", "de", "ja-JP"] }),
+  "ja",
+);
+check("no signal at all falls back to Japanese", resolveInitialLocale({}), DEFAULT_LOCALE);
+check("default locale is Japanese", DEFAULT_LOCALE, "ja");
+check(
+  "an invalid ?lang= falls through to the stored choice",
+  resolveInitialLocale({ search: "?lang=klingon", stored: "en" }),
+  "en",
+);
+check(
+  "an invalid ?lang= with nothing stored falls back to Japanese",
+  resolveInitialLocale({ search: "?lang=klingon", languages: ["fr"] }),
+  "ja",
+);
+check(
+  "a corrupted stored value falls through to the browser",
+  resolveInitialLocale({ stored: "{}", languages: ["en"] }),
+  "en",
+);
+
+// --- htmlLang --------------------------------------------------------------
+check("htmlLang('ja')", htmlLang("ja"), "ja");
+check("htmlLang('en')", htmlLang("en"), "en");
+
+// --- dictionaries ----------------------------------------------------------
+ok("ja dictionary resolves", dictionaryFor("ja").meta.title.length > 0);
+ok("en dictionary resolves", dictionaryFor("en").meta.title.length > 0);
+ok(
+  "the two dictionaries differ",
+  dictionaryFor("ja").cockpit.title !== dictionaryFor("en").cockpit.title,
+);
+ok(
+  "en meta description is English",
+  !/[぀-ゟ゠-ヿ一-龯]/.test(dictionaryFor("en").meta.description),
+);
+
+// --- content resolvers -----------------------------------------------------
+check(
+  "ja concepts are the untouched source objects",
+  localizedConcepts.ja[0] === concepts[0],
+  true,
+);
+check(
+  "en concepts preserve count and ids",
+  localizedConcepts.en.map((c) => c.id),
+  concepts.map((c) => c.id),
+);
+ok(
+  "no en concept retains Japanese in its one-line definition",
+  localizedConcepts.en.every((c) => !/[぀-ゟ゠-ヿ一-龯]/.test(c.oneLine)),
+);
+ok(
+  "no en concept retains Japanese in its caution",
+  localizedConcepts.en.every((c) => !/[぀-ゟ゠-ヿ一-龯]/.test(c.caution)),
+);
+ok(
+  "en concepts derive whyImportant / thirtySecond / miniQuestion in English",
+  localizedConcepts.en.every(
+    (c) =>
+      !/[぀-ゟ゠-ヿ一-龯]/.test(c.whyImportant) &&
+      !/[぀-ゟ゠-ヿ一-龯]/.test(c.thirtySecond) &&
+      !/[぀-ゟ゠-ヿ一-龯]/.test(c.miniQuestion.prompt),
+  ),
+);
+ok(
+  "en scenarios keep the responsibility wording",
+  localizedScenarios.en.some((s) => /shipment release/i.test(s.goodResponse)),
+);
+ok(
+  "no en scenario retains Japanese",
+  localizedScenarios.en.every((s) => !/[぀-ゟ゠-ヿ一-龯]/.test(s.concern + s.goodResponse)),
+);
+ok(
+  "no en drill retains Japanese",
+  localizedDrills.en.every(
+    (d) => !/[぀-ゟ゠-ヿ一-龯]/.test(d.title + d.thirtySecondAnswer + d.threeMinuteAnswer),
+  ),
+);
+
+// Wording guardrails from the brief: the English side must not overclaim.
+const englishCorpus = [
+  JSON.stringify(dictionaryFor("en")),
+  JSON.stringify(localizedConcepts.en),
+  JSON.stringify(localizedScenarios.en),
+  JSON.stringify(localizedDrills.en),
+].join(" ");
+
+for (const banned of [
+  "fully autonomous",
+  "AI replaces human judgment",
+  "guaranteed improvement",
+  "production-ready MES",
+  "real-time factory integration",
+  "proven ROI",
+]) {
+  ok(`English content avoids "${banned}"`, !new RegExp(banned, "i").test(englishCorpus));
+}
+
+// --- report ----------------------------------------------------------------
+console.log("Locale tests");
+console.log(`passed=${passed}`);
+
+if (failures.length) {
+  console.error(`failed=${failures.length}`);
+  for (const failure of failures) console.error(`- ${failure}`);
+  process.exit(1);
+}
+
+console.log("Locale tests passed");
