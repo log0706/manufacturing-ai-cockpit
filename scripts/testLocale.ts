@@ -9,9 +9,12 @@ import {
   localeFromSearch,
   htmlLang,
   normalizeLocale,
+  readSearchLocale,
   resolveInitialLocale,
 } from "../src/i18n/locale";
 import { dictionaryFor } from "../src/i18n";
+import { FuguReviewError, fuguErrorMessage } from "../src/lib/fuguReviewError";
+import { FUGU_USER_ANSWER_MAX_LENGTH } from "../src/lib/fuguReviewSchema";
 import { localizedConcepts, localizedScenarios, localizedDrills } from "../src/i18n/content";
 import { concepts } from "../src/data/concepts";
 
@@ -52,6 +55,22 @@ check("localeFromSearch('?lang=fr') is ignored", localeFromSearch("?lang=fr"), n
 check("localeFromSearch('') is no signal", localeFromSearch(""), null);
 check("localeFromSearch('?x=1') is no signal", localeFromSearch("?x=1"), null);
 
+// --- readSearchLocale: absent vs present-but-unsupported must stay distinguishable ---
+check("readSearchLocale('') is absent", readSearchLocale(""), { kind: "absent" });
+check("readSearchLocale('?x=1') is absent", readSearchLocale("?x=1"), { kind: "absent" });
+check("readSearchLocale('?lang=en') is supported", readSearchLocale("?lang=en"), {
+  kind: "supported",
+  locale: "en",
+});
+check("readSearchLocale('?lang=fr') is unsupported", readSearchLocale("?lang=fr"), {
+  kind: "unsupported",
+  raw: "fr",
+});
+check("readSearchLocale('?lang=') is unsupported, not absent", readSearchLocale("?lang="), {
+  kind: "unsupported",
+  raw: "",
+});
+
 // --- precedence: URL > stored > browser > default --------------------------
 check(
   "URL beats both stored and browser",
@@ -80,15 +99,38 @@ check(
 );
 check("no signal at all falls back to Japanese", resolveInitialLocale({}), DEFAULT_LOCALE);
 check("default locale is Japanese", DEFAULT_LOCALE, "ja");
+// --- an explicit but unsupported ?lang= is authoritative: it resolves to Japanese
+// rather than deferring to the stored choice or the browser. The four cases below are
+// the contract stated in the README. ---
 check(
-  "an invalid ?lang= falls through to the stored choice",
-  resolveInitialLocale({ search: "?lang=klingon", stored: "en" }),
+  "?lang=fr with saved=en resolves to Japanese",
+  resolveInitialLocale({ search: "?lang=fr", stored: "en", languages: ["en-US"] }),
+  "ja",
+);
+check(
+  "?lang=invalid with an en-US browser resolves to Japanese",
+  resolveInitialLocale({ search: "?lang=invalid", languages: ["en-US"] }),
+  "ja",
+);
+check(
+  "no lang parameter with saved=en resolves to English",
+  resolveInitialLocale({ stored: "en" }),
   "en",
 );
 check(
-  "an invalid ?lang= with nothing stored falls back to Japanese",
-  resolveInitialLocale({ search: "?lang=klingon", languages: ["fr"] }),
+  "no lang parameter with an en-US browser resolves to English",
+  resolveInitialLocale({ languages: ["en-US"] }),
+  "en",
+);
+check(
+  "an empty ?lang= is treated as an explicit unsupported value",
+  resolveInitialLocale({ search: "?lang=", stored: "en", languages: ["en-US"] }),
   "ja",
+);
+check(
+  "an unrelated query parameter does not suppress the stored choice",
+  resolveInitialLocale({ search: "?utm_source=x", stored: "en" }),
+  "en",
 );
 check(
   "a corrupted stored value falls through to the browser",
@@ -110,6 +152,46 @@ ok(
 ok(
   "en meta description is English",
   !/[぀-ゟ゠-ヿ一-龯]/.test(dictionaryFor("en").meta.description),
+);
+
+// --- FUGU errors: the client throws codes, the UI resolves them per locale -------
+const jaDict = dictionaryFor("ja");
+const enDict = dictionaryFor("en");
+const CJK_RE = /[぀-ゟ゠-ヿ一-龯]/;
+
+for (const code of ["emptyAnswer", "jsonParse", "timeout", "failed"] as const) {
+  const error = new FuguReviewError(code);
+  ok(`FUGU ${code} renders Japanese in ja`, CJK_RE.test(fuguErrorMessage(error, jaDict)));
+  ok(`FUGU ${code} renders English in en`, !CJK_RE.test(fuguErrorMessage(error, enDict)));
+  ok(
+    `FUGU ${code} differs between locales`,
+    fuguErrorMessage(error, jaDict) !== fuguErrorMessage(error, enDict),
+  );
+}
+
+const tooLong = new FuguReviewError("tooLong", { max: FUGU_USER_ANSWER_MAX_LENGTH });
+ok(
+  "FUGU tooLong includes the character limit in ja",
+  fuguErrorMessage(tooLong, jaDict).includes(String(FUGU_USER_ANSWER_MAX_LENGTH)),
+);
+ok(
+  "FUGU tooLong includes the character limit in en",
+  fuguErrorMessage(tooLong, enDict).includes(String(FUGU_USER_ANSWER_MAX_LENGTH)),
+);
+ok("FUGU tooLong renders English in en", !CJK_RE.test(fuguErrorMessage(tooLong, enDict)));
+check(
+  "a server-supplied message is shown verbatim rather than replaced",
+  fuguErrorMessage(new FuguReviewError("failed", { serverMessage: "model unavailable" }), enDict),
+  "model unavailable",
+);
+check(
+  "an unexpected non-FuguReviewError still resolves to locale text",
+  fuguErrorMessage(new TypeError("fetch failed"), enDict),
+  enDict.errors.fuguFailed,
+);
+ok(
+  "an unexpected error in ja does not leak the raw English exception",
+  CJK_RE.test(fuguErrorMessage(new TypeError("fetch failed"), jaDict)),
 );
 
 // --- content resolvers -----------------------------------------------------

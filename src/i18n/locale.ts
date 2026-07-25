@@ -44,13 +44,37 @@ export interface LocaleResolutionInput {
   languages?: readonly string[] | null;
 }
 
-export const localeFromSearch = (search: string | null | undefined): Locale | null => {
-  if (!search) return null;
+/**
+ * Outcome of reading `?lang=` from a query string. The three cases are kept distinct
+ * because "no `lang` parameter" and "`lang` parameter with an unsupported value" must
+ * resolve differently: the first defers to the stored/browser preference, the second
+ * does not.
+ */
+export type SearchLocale =
+  | { kind: "absent" }
+  | { kind: "supported"; locale: Locale }
+  | { kind: "unsupported"; raw: string };
+
+export const readSearchLocale = (search: string | null | undefined): SearchLocale => {
+  if (!search) return { kind: "absent" };
+
+  let raw: string | null = null;
   try {
-    return normalizeLocale(new URLSearchParams(search).get(LOCALE_QUERY_KEY));
+    raw = new URLSearchParams(search).get(LOCALE_QUERY_KEY);
   } catch {
-    return null;
+    return { kind: "absent" };
   }
+
+  if (raw === null) return { kind: "absent" };
+
+  const locale = normalizeLocale(raw);
+  return locale ? { kind: "supported", locale } : { kind: "unsupported", raw };
+};
+
+/** Convenience wrapper: the locale named by `?lang=`, or null when absent/unsupported. */
+export const localeFromSearch = (search: string | null | undefined): Locale | null => {
+  const result = readSearchLocale(search);
+  return result.kind === "supported" ? result.locale : null;
 };
 
 /**
@@ -61,12 +85,16 @@ export const localeFromSearch = (search: string | null | undefined): Locale | nu
  * 3. the browser language list,
  * 4. Japanese.
  *
- * An unrecognised value at any level is ignored rather than treated as an error, so
- * `?lang=fr` falls through to the stored choice and ultimately to Japanese.
+ * An explicit `?lang=` is authoritative even when its value is unsupported: `?lang=fr`
+ * resolves to Japanese rather than falling through to the stored or browser preference.
+ * The reasoning is that the URL is a deliberate instruction — silently serving English
+ * because the browser happens to be `en-US` would ignore it. An *absent* parameter is
+ * not an instruction, so it does defer to the stored choice and then the browser.
  */
 export const resolveInitialLocale = (input: LocaleResolutionInput = {}): Locale => {
-  const fromUrl = localeFromSearch(input.search);
-  if (fromUrl) return fromUrl;
+  const fromUrl = readSearchLocale(input.search);
+  if (fromUrl.kind === "supported") return fromUrl.locale;
+  if (fromUrl.kind === "unsupported") return DEFAULT_LOCALE;
 
   const fromStorage = normalizeLocale(input.stored);
   if (fromStorage) return fromStorage;

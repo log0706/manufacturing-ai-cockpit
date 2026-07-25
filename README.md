@@ -50,9 +50,21 @@ One codebase, two locale dictionaries — not two apps.
   group: one Tab stop, arrow keys to move, Enter or Space to select.
 - The choice is remembered in `localStorage` and applies on the next visit.
 - Link directly to a language with `?lang=ja` or `?lang=en`.
-- Resolution order: **`?lang=` → stored choice → browser language → Japanese.** Any
-  unrecognised value falls through to the next signal rather than erroring.
+- Resolution order: **`?lang=` → stored choice → browser language → Japanese.**
+- An explicit `?lang=` is authoritative even when its value is unsupported: `?lang=fr`
+  opens in **Japanese** rather than falling through to the stored choice or the browser
+  language. The URL is a deliberate instruction, so serving English because the browser
+  happens to be `en-US` would ignore it. An *absent* parameter is not an instruction, so
+  it does defer to the stored choice and then to the browser.
 - `<html lang>`, `document.title`, and the meta description all follow the active locale.
+
+| URL | Stored | Browser | Result |
+|---|---|---|---|
+| `?lang=fr` | `en` | `en-US` | **ja** |
+| `?lang=invalid` | — | `en-US` | **ja** |
+| none | `en` | `ja-JP` | **en** |
+| none | — | `en-US` | **en** |
+| none | — | `fr-FR` | **ja** |
 
 Try it: [`?lang=en`](https://manufacturing-ai-cockpit.netlify.app/?lang=en) ·
 [`?lang=ja`](https://manufacturing-ai-cockpit.netlify.app/?lang=ja) — subject to the
@@ -192,13 +204,29 @@ npm run audit:questions   # 85 intermediate explanation questions
 npm run audit:beginner    # 200 beginner questions, category and answer balance
 npm run audit:glossary    # glossary references resolve
 npm run audit:i18n        # dictionary parity and content coverage
-npm run test:locale       # locale resolution and wording guardrails
+npm run audit:links       # every relative Markdown link resolves
+npm run test:locale       # locale resolution, FUGU errors, wording guardrails
+npm run test:browser      # Playwright: both locales in a real browser
 npm run build
 ```
 
-`npm test` runs the five data/i18n checks so a reviewer can cover content quality with
-one command. `audit:i18n` fails on a missing key, an empty value, a type divergence, or a
-value still containing Japanese — verified against injected regressions.
+`npm test` runs the six data/i18n checks. `npm run test:browser` is separate because it
+needs a browser binary:
+
+```bash
+npx playwright install --with-deps chromium
+npm run test:browser
+```
+
+It starts and stops Vite itself, so it is a single self-contained command. Both
+`npm run verify` and `npm run test:browser` run on every pull request via
+[`.github/workflows/verify.yml`](.github/workflows/verify.yml).
+
+`audit:i18n` fails on a missing key, an empty value, a type divergence, or a value still
+containing Japanese — verified against injected regressions. `audit:links` fails when a
+Markdown link points at a file that is not in the repository; it was added after exactly
+that defect shipped on this branch, when an unanchored `audit/` rule in `.gitignore`
+silently excluded `docs/audit/` from a commit.
 
 ## Limitations
 
@@ -208,7 +236,8 @@ value still containing Japanese — verified against injected regressions.
 - The English locale is **incomplete**: the 200-item and 85-item question banks and the
   82-term glossary are Japanese-only. Those modules say so in English rather than showing
   untranslated content.
-- The FUGU review helper is development-only and is not part of the public demo.
+- The FUGU review helper is development-only and is not part of the public demo. Its
+  user-facing error messages are localized; the review prompt sent to the model is not.
 - The production bundle is a single ~1 MB JS chunk; it is not code-split.
 
 ## Deployment status
