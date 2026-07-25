@@ -107,9 +107,17 @@ Page header, 7 section titles + 7 action labels, 6 empty states, training-data s
 release buttons, reset confirmation dialog text.
 
 ### K. Error / save / confirmation messages — **translated**
-localStorage write-failure banner (global + Beginner-local), FUGU client errors
-(JSON parse, empty answer, length limit, timeout, generic failure), clipboard failure,
-canvas required-field notice, training-data reset `window.confirm`.
+localStorage write-failure banner (global + Beginner-local), clipboard failure, canvas
+required-field notice, training-data reset `window.confirm`, and the FUGU review errors
+(JSON parse, empty answer, length limit, timeout, generic failure).
+
+The FUGU errors are localized indirectly, because `src/lib/fuguReviewClient.ts` is a
+library and must not depend on a React context. It throws a `FuguReviewError` carrying a
+locale-independent `code`; `fuguErrorMessage(error, t)` in `src/lib/fuguReviewError.ts`
+resolves that code against the active dictionary at the call site in `DrillDeckPage`. An
+error message supplied by the local review server is shown verbatim instead, since the
+server knows more about the specific failure than the client does. Covered by
+`npm run test:locale`.
 
 ### L. `aria-label` / `alt` — **translated**
 Main navigation, mobile navigation, progress rail, session progress, PC shortcuts,

@@ -9,6 +9,7 @@ import type {
 } from "../types";
 import { CautionBox, EmptyState, LocaleContentNotice, RedAccentButton, StatCard } from "../components/ui";
 import { useLocale } from "../contexts/localeContext";
+import { fuguErrorMessage } from "../lib/fuguReviewError";
 import { GlossaryProvider } from "../components/GlossaryProvider";
 import { RichTextWithGlossary } from "../components/RichTextWithGlossary";
 import { QuestionGlossaryPanel } from "../components/QuestionGlossaryPanel";
@@ -305,9 +306,9 @@ export const DrillDeckPage = ({
         });
       } catch (error) {
         setFuguStatus("error");
-        setFuguError(
-          error instanceof Error ? error.message : "FUGU講評を取得できませんでした。",
-        );
+        // The client throws locale-independent codes; resolve them here, where the
+        // active dictionary is available.
+        setFuguError(fuguErrorMessage(error, t));
       }
     },
     [
@@ -321,6 +322,7 @@ export const DrillDeckPage = ({
       fuguReviewEndpoint,
       onRecordFuguReview,
       selectedReasons,
+      t,
     ],
   );
 
