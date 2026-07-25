@@ -4845,3 +4845,32 @@ body {
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
+
+/* Review Vault section headers: the action button squeezed the title track until
+   English headings wrapped to three lines. */
+.reviewSectionHeader {
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.reviewSectionHeader h2 {
+  flex: 1 1 180px;
+  min-width: 0;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.reviewSectionHeader .accentButton {
+  flex: 0 0 auto;
+}
+
+.reviewItem.withAction {
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.reviewItem.withAction > div {
+  min-width: 0;
+}

@@ -14,8 +14,9 @@ coverage. The numbers below are the plan; the script is the authority.
 | Layer | Approx. Japanese strings | Decision |
 |---|---|---|
 | UI chrome (`pages/`, `components/`, `lib/`, `App.tsx`) | ~460 | **fully translated** |
-| Small/medium domain datasets | ~760 | **fully translated** |
+| Concepts + small/medium domain datasets | ~760 | **fully translated** |
 | Question banks (`beginnerChoiceQuestions`, `trainingQuestions`, `questions`) | ~5 320 | **deferred, declared in-app** |
+| Glossary (`glossary.ts`) | ~1 220 | **deferred with the question banks** (see N) |
 | Code comments / Japanese enum keys | ~1 190 | not translated (not user-facing) |
 | **Total scanned** | **~7 730** | |
 
@@ -129,11 +130,25 @@ these modules show an explicit English notice stating that the item bank is
 Japanese-only, rather than silently rendering Japanese inside an English page or showing
 a blank. See "Deferred content policy" below.
 
-### N. Glossary and concepts — **translated**
-| Dataset | Items | Fields translated |
-|---|---|---|
-| `concepts` | 39 | `title`, `oneLine`, `whyImportant`, `departments`, `kpis`, `aiTouchpoint`, `caution`, `thirtySecond`, `miniQuestion` |
-| `glossary` | 82 | `term`, `shortDefinition`, `plainExplanation`, `manufacturingContext`, `aiContext`, `caution`, `relatedKpis`, `relatedDepartments`, `usageSituation` |
+### N. Concepts — **translated**. Glossary — **deferred**
+
+| Dataset | Items | EN coverage | Fields |
+|---|---|---|---|
+| `concepts` | 39 | **100%** | `title`, `oneLine`, `departments`, `kpis`, `aiTouchpoint`, `caution`, plus the plain-language enrichment (summary, diagram, usage, example, AI connection) for the 15 that have it |
+| `glossary` | 82 | 0% | — |
+
+`whyImportant`, `thirtySecond`, and `miniQuestion` are template-derived in the Japanese
+data rather than authored per concept, so `localizeConcept` applies equivalent English
+templates instead of duplicating 39 generated sentences.
+
+**Why the glossary is deferred rather than translated.** Every consumer of
+`glossary.ts` — `GlossaryPopover`, `GlossaryBottomSheet`, `QuestionGlossaryPanel`, and
+`glossaryMatcher` — is reached only from question text in `DrillDeckPage` or
+`BeginnerChoicePage`. Both of those banks are Japanese-only (category M), so in the
+English locale the glossary is unreachable: translating its 82 terms would add roughly
+1 200 strings that no English screen can display today. It is therefore scheduled with
+the question banks it serves, not separately. `glossaryCategoryLabels` *is* translated,
+because it is UI-level.
 
 Term IDs, aliases used for matching, and category keys are unchanged.
 
@@ -177,7 +192,32 @@ publication verdict in the final report reflects the deferred question banks.
 | `beginnerChoiceQuestions` — 200 × (prompt, 4 choices, explanation, whyCorrect, 3× whyWrong, keyTakeaway, caution, bridge, KPIs, departments) | ~3 990 strings | 3–4 focused sessions with terminology review |
 | `trainingQuestions` — 85 × (title, prompt, situation, expectedAnswer, 2 model answers, keyPoints, ngPatterns, rubric, keywords, riskNotes, responsibilityBoundary) | ~940 strings | 2–3 sessions |
 | `questions` legacy bank | ~390 strings | 1 session |
+| `glossary` — 82 terms × (term, shortDefinition, plainExplanation, manufacturingContext, aiContext, caution, relatedKpis, relatedDepartments, usageSituation) | ~1 220 strings | 1-2 sessions, best done with the question banks |
 | Native-speaker review of manufacturing terminology across all of the above | — | 1 review pass |
 
-Translating the question banks is the only blocker to declaring a complete English
-release.
+Translating the question banks — and, with them, the glossary they surface — is the only
+blocker to declaring a complete English release.
+
+## Verified coverage as built
+
+`npm run audit:i18n` on this branch reports:
+
+```text
+ui string keys=541
+ui formatter keys=34
+
+Content datasets (English overlays)
+- concepts: 39/39 (100%)
+- scenarios: 8/8 (100%)
+- glossaryFrictions: 6/6 (100%)
+- expertDialogues: 5/5 (100%)
+- decisionAuthority: 5/5 (100%)
+- explainDrills: 10/10 (100%)
+
+Deferred question banks (reported, not enforced)
+- beginnerChoiceQuestions: 0/200 (0%)
+- trainingQuestions: 0/85 (0%)
+```
+
+The audit exits non-zero if any `expectComplete` dataset regresses below 100%, or if any
+English dictionary value is missing, empty, type-divergent, or still contains Japanese.

@@ -140,6 +140,29 @@ ok(
       !/[぀-ゟ゠-ヿ一-龯]/.test(c.miniQuestion.prompt),
   ),
 );
+// The plain-language enrichment is optional per concept, so a dropped overlay would be
+// invisible at runtime. Assert the ja/en sets match and carry no Japanese.
+const enriched = <T extends { juniorSummary?: string; conceptDiagram?: unknown; usageScene?: string[]; exampleScene?: string[]; aiConnection?: string }>(
+  items: T[],
+) =>
+  items.filter(
+    (c) =>
+      c.juniorSummary || c.conceptDiagram || c.usageScene?.length || c.exampleScene?.length || c.aiConnection,
+  );
+check(
+  "the same concepts carry plain-language enrichment in both locales",
+  enriched(localizedConcepts.en).length,
+  enriched(concepts).length,
+);
+ok(
+  "no enriched en concept retains Japanese",
+  localizedConcepts.en.every(
+    (c) =>
+      !/[぀-ゟ゠-ヿ一-龯]/.test(
+        JSON.stringify([c.juniorSummary, c.conceptDiagram, c.usageScene, c.exampleScene, c.aiConnection]),
+      ),
+  ),
+);
 ok(
   "en scenarios keep the responsibility wording",
   localizedScenarios.en.some((s) => /shipment release/i.test(s.goodResponse)),
