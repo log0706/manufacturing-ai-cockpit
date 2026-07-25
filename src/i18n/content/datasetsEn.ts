@@ -26,10 +26,10 @@ export const scenariosEn: Record<string, ScenarioEn> = {
     reason:
       "They are accountable for safety, quality, delivery, and cost across the whole plant.",
     goodResponse:
-      "We start with past-trouble search and organising information during abnormalities, not with control or shipment release. The final call on safety and quality stays with the existing accountable owner by design.",
+      "We start by searching past trouble reports and organising information during abnormalities, not with control or shipment release. The final call on safety and quality stays with the existing accountable owner by design.",
     poorResponse: "AI can make everything more efficient.",
     aiTalentTrap:
-      "Leading with global optimisation and automation, and leaving the safety, quality, and delivery accountability the plant manager carries until later.",
+      "Leading with plant-wide optimisation and automation, and only later addressing the safety, quality, and delivery accountability that the plant manager carries.",
     agreedGoal:
       "Start with organising information and shortening first response during abnormalities — not control or shipment release — and agree on a scope that supports the accountable owner's decision.",
     nextQuestions: [
@@ -46,7 +46,7 @@ export const scenariosEn: Record<string, ScenarioEn> = {
       "AI does not decide shipment release; it organises inspection results, past defects, and corrective actions. The final judgement and the record stay in the existing quality-assurance process.",
     poorResponse: "Just trust the AI's judgement.",
     aiTalentTrap:
-      "Emphasising accuracy and output quality while treating audit evidence, approvals, and version control lightly.",
+      "Emphasising accuracy and output quality while giving too little weight to audit evidence, approvals, and version control.",
     agreedGoal:
       "Place AI as an evidence-organising role that makes inspection results, past defects, and corrective actions easier to find — not as a substitute for the quality-assurance judgement.",
     nextQuestions: [
@@ -63,7 +63,7 @@ export const scenariosEn: Record<string, ScenarioEn> = {
       "After confirming process conditions, equipment capability, and standard work, AI is used to organise improvement candidates and candidate causes of abnormalities. Decisions on process changes follow the existing process.",
     poorResponse: "We will determine the optimal conditions automatically from the data.",
     aiTalentTrap:
-      "Leading with data optimisation without asking enough about process conditions, equipment constraints, and change approval.",
+      "Leading with data optimisation without asking enough about process conditions, equipment constraints, and the change-approval process.",
     agreedGoal:
       "Place AI in the role of organising candidate causes, improvement options, and validation criteria — not deciding process conditions automatically.",
     nextQuestions: [
@@ -75,53 +75,54 @@ export const scenariosEn: Record<string, ScenarioEn> = {
   "sc-maintenance": {
     stakeholder: "Maintenance",
     concern: "Will false alarms increase the inspection load?",
-    reason: "Maintenance resources are limited, and a stoppage decision carries weight.",
+    reason: "Maintenance resources are limited, and a stoppage decision carries real consequences.",
     goodResponse:
       "Predictive maintenance is not there to generate more alarms; it helps prioritise the equipment with the highest stoppage risk. Recording false alarms and reviewing thresholds are part of the operating design.",
     poorResponse: "AI will prevent failures.",
     aiTalentTrap:
-      "Talking only about failure-prediction performance and overlooking both the inspection load from false alarms and the weight of a stoppage decision.",
+      "Talking only about failure-prediction performance, without accounting for the inspection load created by false alarms or the weight of a stoppage decision.",
     agreedGoal:
       "Place AI as maintenance support that organises inspection priority, early signs, and past recovery cases — not as a guarantee against failure.",
     nextQuestions: [
-      "Which weighs more as floor load and stoppage loss: a miss or a false alarm?",
+      "Which costs more in shop-floor workload and stoppage loss: a missed failure or a false alarm?",
       "Who performs the first check after an alarm, and who decides on inspection?",
       "Through which routine are thresholds reviewed and false alarms recorded?",
     ],
   },
   "sc-it-dx": {
     stakeholder: "IT / information systems",
-    concern: "Security, access rights, and impact on existing systems are a worry.",
-    reason: "They are accountable for production operation and maintenance.",
+    concern: "Security, access control, and the impact on existing systems are the concern.",
+    reason:
+      "They are accountable for system operations, security, access control, and integration with the existing environment.",
     goodResponse:
-      "We define the connection method, data scope, access rights, logging, and support model early. For OT, we look at read-only access first.",
+      "We define the connection method, data scope, access control, logging, and support model early. For OT, we start with read-only access.",
     poorResponse: "It's only a PoC, so we will think about security later.",
     aiTalentTrap:
-      "Prioritising PoC speed and deferring access rights, logging, existing-system impact, and OT connection conditions to a later phase.",
+      "Prioritising PoC speed, so that access control, logging, existing-system impact, and OT connection conditions are left to a later phase.",
     agreedGoal:
-      "Define the connection method, data scope, access rights, logging, and support accountability at least minimally from the PoC stage.",
+      "Define the connection method, data scope, access control, logging, and support ownership at least minimally from the PoC stage.",
     nextQuestions: [
       "Which data may the PoC access, and which is off limits?",
-      "What access rights, logging, and support model are needed to go into regular operation?",
-      "Can OT access be separated into read-only versus potential write access?",
+      "What access control, logging, and support model are needed for regular operation?",
+      "Can OT access be separated into read-only access and possible write access?",
     ],
   },
   "sc-line-leader": {
     stakeholder: "Line team leader",
-    concern: "It will add work, and it will not fit the floor.",
+    concern: "It will add work, and it will not fit how the floor actually operates.",
     reason:
       "Team leaders run daily operations and the first response when something goes wrong.",
     goodResponse:
       "Rather than adding data entry, we design it to cut time spent searching and time spent confirming during abnormalities. We trial it inside the existing handover and procedures.",
     poorResponse: "The floor will get used to it.",
     aiTalentTrap:
-      "Pushing adoption onto the floor's own effort without checking the daily work flow or the data-entry burden.",
+      "Treating adoption as something the floor should absorb, without first checking the daily work flow or the data-entry burden.",
     agreedGoal:
       "Trial it on a path that reduces search time, confirmation time, and handover load — not one that adds new data-entry load.",
     nextQuestions: [
       "What information does the floor currently spend the most time looking for?",
       "Where does it fit most naturally: the existing handover, the daily report, or the abnormality procedure?",
-      "Will you diagnose abandonment through data-entry load, trust, or the on-screen path?",
+      "How will you determine why users stop using it: data-entry burden, lack of trust, or the user flow?",
     ],
   },
   "sc-operator": {
@@ -132,7 +133,7 @@ export const scenariosEn: Record<string, ScenarioEn> = {
       "The purpose is not individual appraisal; it is to make procedure checks and reference material easier to reach when you are stuck. It is there to reduce the time spent uncertain.",
     poorResponse: "We will use AI to see which operators are good.",
     aiTalentTrap:
-      "Talking about what behavioural data makes analysable, while treating the fear of being monitored and the fairness question lightly.",
+      "Focusing on what can be analysed from behavioural data, while giving too little weight to the fear of being monitored and to fairness.",
     agreedGoal:
       "Position it as support for procedure checks, training, and reference when stuck — not as individual appraisal.",
     nextQuestions: [
@@ -143,13 +144,13 @@ export const scenariosEn: Record<string, ScenarioEn> = {
   },
   "sc-executive": {
     stakeholder: "Executive management",
-    concern: "Is the return there, and will it scale to other sites?",
+    concern: "Will it deliver a return, and can it scale to other sites?",
     reason: "They allocate capital and weigh risk from a company-wide view.",
     goodResponse:
       "First we confirm KPI improvement in a limited area, then organise the data, procedures, and operations that can be made common. On that basis we judge whether to roll it out.",
     poorResponse: "It has a future, so we should invest heavily.",
     aiTalentTrap:
-      "Talking about technical promise while leaving the KPIs, rollout conditions, and risks an investment decision needs vague.",
+      "Talking about technical promise while leaving the KPIs, rollout conditions, and risks that an investment decision needs undefined.",
     agreedGoal:
       "Confirm KPI improvement and operational feasibility in a limited area, and separate what can be made common from what needs site-by-site validation.",
     nextQuestions: [
@@ -336,7 +337,7 @@ export const authorityEn: Record<string, AuthorityEn> = {
     aiRole:
       "Starts from reading, monitoring, anomaly detection, and suggesting candidate conditions.",
     humanRole:
-      "Writes to PLC/DCS, control changes, and emergency response require an approval design without exception.",
+      "Any write access to a PLC or DCS, control change, or emergency action requires an explicit approval process.",
     evidenceToLeave:
       "Access rights, logs, change approval, the rollback procedure, and the emergency-stop response.",
   },
@@ -363,7 +364,7 @@ export const drillsEn: Record<string, DrillEn> = {
   "ex-erp-mes": {
     title: "The difference between ERP and MES",
     thirtySecondAnswer:
-      "ERP is the core-side system managing company-wide orders, accounting, inventory, and costing. MES is the execution-side system managing work orders, production records, process steps, and lots inside the plant.",
+      "ERP is the enterprise-wide system that manages orders, accounting, inventory, and costing. MES is the plant-level execution system that manages work orders, production records, process steps, and lots.",
     threeMinuteAnswer:
       "ERP sits close to management, the business, procurement, inventory, and accounting. MES handles what was made, at which process step, as which lot, on which equipment. In an AI initiative, looking only at ERP hides second-by-second and step-by-step change on the floor; looking only at MES makes the relationship to orders, inventory, and cost hard to see. To explain a delivery delay or a quality problem, you need to connect ERP's plan and inventory information with MES's actuals and lot information. In practice item IDs, timestamps, and lots are often not linked — and that is the thing to check before starting an AI initiative.",
     keywords: ["Management and planning", "Plant execution", "Granularity gap", "Lot", "Inventory"],
@@ -374,7 +375,7 @@ export const drillsEn: Record<string, DrillEn> = {
     thirtySecondAnswer:
       "MES is the system that manages manufacturing execution. MOM is the broader framing that also covers production, quality, maintenance, and inventory across plant operations.",
     threeMinuteAnswer:
-      "MES sits at the centre of manufacturing execution: work orders, actuals collection, process progress, lot management. MOM is broader — a way of framing plant operations that takes in quality, maintenance, inventory, and performance management as well as production. In an AI initiative, the MOM direction is to connect not just MES data but QMS quality information, CMMS maintenance history, and SCADA equipment state, and to support decisions across the plant. Because the scope MOM covers differs by company and system landscape, confirm in conversation what the other side means by it.",
+      "MES sits at the centre of manufacturing execution: work orders, actuals collection, process progress, lot management. MOM is broader — a way of framing plant operations that takes in quality, maintenance, inventory, and performance management as well as production. In an AI initiative, a MOM approach connects not only MES data but also QMS quality information, CMMS maintenance history, and SCADA equipment state, in order to support decisions across the plant. Because the scope MOM covers differs by company and system landscape, confirm in conversation what the other side means by it.",
     keywords: ["Manufacturing execution", "Plant operations", "Quality", "Maintenance", "Scope difference"],
     caution: "Do not push MOM as a fixed definition.",
   },
@@ -401,7 +402,7 @@ export const drillsEn: Record<string, DrillEn> = {
     thirtySecondAnswer:
       "Production engineering owns how it is made; production control owns what is made, when, and how much.",
     threeMinuteAnswer:
-      "Production engineering covers process design, equipment introduction, processing conditions, production ramp-up, and process improvement — building a process that can make the product consistently. Production control builds the production plan while watching demand, inventory, delivery dates, equipment load, and labour, and coordinates changes. In an AI initiative, it lands better to describe it to production engineering as anomaly analysis and improvement support grounded in process conditions and equipment constraints, and to production control as organising the impact of plan changes when materials are delayed or equipment stops. Both are involved, but they watch different KPIs and hold different accountability.",
+      "Production engineering covers process design, equipment introduction, processing conditions, production ramp-up, and process improvement — building a process that can make the product consistently. Production control builds the production plan while watching demand, inventory, delivery dates, equipment load, and labour, and coordinates changes. In an AI initiative, for production engineering, frame it as anomaly analysis and improvement support grounded in process conditions and equipment constraints; for production control, frame it as organising the impact of plan changes when materials are delayed or equipment stops. Both are involved, but they watch different KPIs and hold different accountability.",
     keywords: ["How it is made", "What is made when", "Process conditions", "Delivery", "Inventory"],
     caution: "Do not treat the two functions as having the same concern.",
   },
@@ -426,7 +427,7 @@ export const drillsEn: Record<string, DrillEn> = {
   "ex-ot-security": {
     title: "Why OT security matters",
     thirtySecondAnswer:
-      "Because OT is bound up with controlling equipment and lines, a problem leads not only to an information leak but to equipment stoppage and safety and quality impact.",
+      "Because OT directly controls equipment and production lines, a problem leads not only to an information leak but to equipment stoppage and to safety and quality impact.",
     threeMinuteAnswer:
       "IT security centres on protecting information; OT security centres on keeping equipment running safely. When AI is connected to PLC, SCADA, or DCS, an incorrect connection or operation can lead to equipment stoppage, a line stop, quality defects, or a safety risk. It is therefore realistic for AI to begin with reading equipment data, monitoring state, and presenting anomaly trends. If writes or automatic operation are involved, the connection method, access rights, logging, human approval, and emergency response all need to be designed.",
     keywords: ["Equipment stoppage", "Safety", "Quality", "Read-only", "Logging"],

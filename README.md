@@ -22,10 +22,10 @@ for safety, quality, shipment release, and line stop drifts toward the AI; and b
 the plant manager, quality assurance, production engineering, maintenance, IT/DX, and
 management are each watching a different KPI.
 
-This app turns that problem into practice. It presents manufacturing systems, KPIs,
-stakeholder concerns, and human approval gates as guided drills, an alignment canvas,
-and a review loop — so a consultant or business-side AI lead can explain an initiative
-without overpromising automation.
+The app turns those gaps into practice material. It presents manufacturing systems,
+KPIs, stakeholder concerns, and human approval gates as guided drills, an alignment
+canvas, and a review loop, so that a consultant or business-side AI lead can explain an
+initiative without overpromising automation.
 
 It is a learning and portfolio application. It does not connect to real factory systems.
 
@@ -102,8 +102,8 @@ actually answer:
 
 | Module | Purpose | What it demonstrates |
 |---|---|---|
-| Cockpit | Entry point: progress, next action, approval boundary | Multiple modules unified into one flow |
-| Alignment Studio | Stakeholder concerns and an agreement canvas | Structuring disagreement across floor / quality / management |
+| Cockpit | Entry point: progress, next action, approval boundary | Several modules brought into a single flow |
+| Alignment Studio | Stakeholder concerns and an agreement canvas | Structuring disagreement across the floor, quality, and management |
 | Beginner Choice | 200 multiple-choice basics | A large static question set with audit scripts |
 | Drill Deck | 85 intermediate explanation cards | Answer, weak-item, glossary, and optional AI-review state management |
 | Explain Gym | 30-second and 3-minute explanation practice | Turning domain knowledge into an explanation |

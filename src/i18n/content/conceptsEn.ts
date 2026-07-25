@@ -28,7 +28,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
   erp: {
     title: "ERP",
     oneLine:
-      "The core system managing company-wide orders, accounting, inventory, and costing.",
+      "The enterprise-wide system that manages orders, accounting, inventory, and costing.",
     departments: ["Head office", "Business unit", "Production control", "Procurement"],
     kpis: ["On-time delivery rate", "Inventory turnover", "Cost variance"],
     aiTouchpoint: "Organises demand, inventory, costing, and the impact of plan changes.",
@@ -42,7 +42,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
       note: "Pulls scattered records into one place so everyone works from the same numbers.",
     },
     usageScene: [
-      "Connecting an order sales took to purchasing, inventory, and accounting",
+      "Connecting an order taken by sales to purchasing, inventory, and accounting",
       "Reviewing material availability, cost, and revenue together",
     ],
     exampleScene: [
@@ -55,7 +55,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
   mes: {
     title: "MES",
     oneLine:
-      "The manufacturing execution system managing work orders, production records, process steps, and lots inside the plant.",
+      "The manufacturing execution system that manages work orders, production records, process steps, and lots inside the plant.",
     departments: ["Manufacturing", "Production control", "Production engineering"],
     kpis: ["Production reporting accuracy", "First-pass yield", "Downtime"],
     aiTouchpoint:
@@ -454,7 +454,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     aiTouchpoint:
       "Makes it easier to compare the impact of condition changes and abnormal situations.",
     caution:
-      "Without managing the gap from reality, it is weak as a basis for decisions.",
+      "Without managing the gap against reality, it is a weak basis for decisions.",
   },
   "digital-thread": {
     title: "Digital thread",
@@ -469,7 +469,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
   "production-engineering": {
     title: "Production engineering",
     oneLine:
-      "The function that designs processes, equipment, and conditions so volume production works.",
+      "The function that designs processes, equipment, and conditions so that volume production runs stably.",
     departments: ["Production engineering", "Manufacturing", "Quality"],
     kpis: ["Process capability", "Yield", "OEE"],
     aiTouchpoint:
@@ -486,7 +486,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     aiTouchpoint:
       "Organises the impact of plan changes during material delays or equipment stoppages.",
     caution:
-      "Keep it to presenting impact and alternatives, not to executing changes automatically.",
+      "Keep it to presenting impact and alternatives, not executing changes automatically.",
   },
   manufacturing: {
     title: "Manufacturing",
@@ -496,7 +496,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     kpis: ["Output volume", "First-pass yield", "Downtime"],
     aiTouchpoint:
       "Supports procedure checks, first response to abnormalities, and past-case search.",
-    caution: "If it looks like surveillance or appraisal, it will not take hold.",
+    caution: "If it looks like surveillance or performance appraisal, it will not be adopted.",
   },
   "quality-assurance": {
     title: "Quality assurance",
@@ -507,7 +507,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     aiTouchpoint:
       "Used for organising evidence, searching similar defects, and supporting recurrence prevention.",
     caution:
-      "Do not shift decision responsibility to AI; keep the approval and the record.",
+      "Do not shift decision authority to AI; keep the approval and the record.",
   },
   "quality-control": {
     title: "Quality control",
@@ -518,7 +518,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     aiTouchpoint:
       "Organises process variation, candidate defect causes, and inspection results.",
     caution:
-      "Confirming root cause and releasing shipment require human confirmation against existing criteria.",
+      "Root-cause confirmation and shipment release require human confirmation against the existing criteria.",
   },
   maintenance: {
     title: "Maintenance",
@@ -534,13 +534,13 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
   "it-dx": {
     title: "IT / DX",
     oneLine:
-      "The function supporting systems, data, security, and standardisation.",
+      "The function responsible for systems, data, security, and standardisation.",
     departments: ["IT/DX", "Shop floor", "Quality"],
     kpis: ["Uptime", "Incident count", "Adoption rate"],
     aiTouchpoint:
       "Sets up data integration, access rights, logging, and the operating platform.",
     caution:
-      "Involve the operational constraints of the floor, quality, and maintenance from the start.",
+      "Bring in the operational constraints of the floor, quality, and maintenance from the start.",
   },
   procurement: {
     title: "Procurement",
@@ -561,7 +561,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     kpis: ["Safety", "Quality", "OEE", "Cost"],
     aiTouchpoint:
       "Brings stoppages, quality, delivery, and countermeasure status together as decision inputs.",
-    caution: "Frame it on safety and quality first, not efficiency alone.",
+    caution: "Frame it around safety and quality first, not efficiency alone.",
   },
   safety: {
     title: "Safety",
@@ -569,12 +569,12 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     departments: ["Health and safety", "Manufacturing", "Maintenance"],
     kpis: ["Near-miss reports", "Accident rate", "Training completion rate"],
     aiTouchpoint: "Organises past cases and risk information.",
-    caution: "Never place the final decision on whether work may proceed with AI.",
+    caution: "The final decision on whether work may proceed must never rest with AI.",
   },
   quality: {
     title: "Quality",
     oneLine:
-      "The condition of meeting customer requirements and process criteria, and being able to account for it.",
+      "Meeting customer requirements and process criteria, and being able to account for it.",
     departments: ["Quality assurance", "Quality control", "Manufacturing"],
     kpis: ["Defect rate", "Defect escapes", "Recurrence rate"],
     aiTouchpoint: "Organises quality data, past defects, and corrective actions.",
@@ -584,7 +584,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
   audit: {
     title: "Audit",
     oneLine:
-      "The work of being able to account for decision basis, evidence, approvals, and versions.",
+      "The work of being able to account for the basis of a decision, its evidence, approvals, and versions.",
     departments: ["Quality assurance", "IT/DX", "Administration"],
     kpis: ["Audit findings", "Evidence retrieval time"],
     aiTouchpoint: "Organises referenced documents, change history, and the basis for answers.",
@@ -597,7 +597,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
       "Security for keeping plant equipment and control systems running safely.",
     departments: ["IT/DX", "Maintenance", "Production engineering"],
     kpis: ["Downtime", "Incident count", "Safety indicators"],
-    aiTouchpoint: "Bears on connection design, access rights, logging, and monitoring.",
+    aiTouchpoint: "Shapes connection design, access control, logging, and monitoring.",
     caution:
       "It is not only about protecting information — equipment stoppage and safety impact must be considered.",
   },
@@ -608,7 +608,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     departments: ["Shop floor", "IT/DX", "Quality", "Maintenance"],
     kpis: ["Adoption rate", "KPI improvement", "Incorrect-response rate"],
     aiTouchpoint:
-      "Confirms the effect and operational feasibility of a decision-support theme.",
+      "Confirms the benefit and operational feasibility of a decision-support use case.",
     caution:
       "Do not call it a success on accuracy alone; look at production conditions early.",
   },
@@ -639,7 +639,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     departments: ["Head office", "Plants", "Business unit", "SCM"],
     kpis: ["Rollout benefit", "Adoption rate", "Standardisation rate"],
     aiTouchpoint:
-      "Supports shared knowledge, KPI templates, and organising the differences.",
+      "Supports shared knowledge, KPI templates, and mapping the differences between sites.",
     caution:
       "Do not copy across plants without accounting for local differences and local practice.",
   },
@@ -651,7 +651,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     kpis: ["Search time", "Self-resolution rate", "First-response time"],
     aiTouchpoint: "Lets people search scattered documents conversationally.",
     caution:
-      "Version control of approved documents and showing the source both matter.",
+      "Both version control of approved documents and showing the source matter.",
   },
   "quality-analysis": {
     title: "Quality analysis",
@@ -661,7 +661,7 @@ export const conceptsEn: Record<string, ConceptContentEn> = {
     aiTouchpoint:
       "Looks across process conditions, inspection results, and past defects.",
     caution:
-      "Confirming root cause and making the quality-assurance judgement stay with people.",
+      "Confirming the root cause and making the quality-assurance judgement remain with people.",
   },
   "predictive-maintenance": {
     title: "Predictive maintenance",
