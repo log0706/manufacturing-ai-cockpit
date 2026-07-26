@@ -4,8 +4,13 @@ import type { BeginnerChoiceQuestion } from "../data/beginnerChoiceQuestions";
 import { QuestionGlossaryPanel } from "../components/QuestionGlossaryPanel";
 import { RichTextWithGlossary } from "../components/RichTextWithGlossary";
 import { GlossaryProvider } from "../components/GlossaryProvider";
-import { RedAccentButton, StatCard } from "../components/ui";
+import { LocaleContentNotice, RedAccentButton, StatCard } from "../components/ui";
+import { useLocale } from "../contexts/localeContext";
 import {
+  beginnerCategories,
+  // The question/answer/result screens render the Japanese-only question bank, so they
+  // keep the Japanese label maps. They are unreachable in the English locale, where the
+  // top screen shows LocaleContentNotice instead of starting a session.
   beginnerChoiceCategoryLabels as categoryLabels,
   beginnerChoiceModeLabels as modeLabels,
 } from "../lib/beginnerChoiceLabels";
@@ -337,93 +342,122 @@ const BeginnerTop = ({
   onSelectCategory: (category: BeginnerChoiceCategory) => void;
   onStart: (mode: BeginnerChoiceMode, category?: BeginnerChoiceCategory) => void;
   onHome: () => void;
-}) => (
-  <section className="page beginnerPage beginnerTopPage">
-    <div className="beginnerTopHero">
-      <div>
-        <span className="eyebrow">Beginner Choice</span>
-        <h1>初級編：選択式200問</h1>
-        <p>用語・部門・KPI・AI導入の基礎を4択で固めるトレーニングです。</p>
-      </div>
-      <button type="button" className="textButton" onClick={onHome}>
-        Homeへ
-      </button>
-    </div>
+}) => {
+  const { locale, setLocale, t } = useLocale();
+  // "category" is started from the category panel below, not from this grid.
+  const modes = ["daily10", "quick3", "weakReview", "random"] as const;
+  // The 200-item bank is Japanese-only, so the English locale surfaces the gap
+  // explicitly instead of starting a session the reader cannot follow.
+  const bankAvailable = locale === "ja";
 
-    {storageWriteFailed ? (
-      <div className="storageNotice" role="status">
-        初級編の進捗をこの端末に保存できません。ブラウザの保存容量や設定を確認してください。
-      </div>
-    ) : null}
-
-    <div className="homeStats">
-      <StatCard
-        label="回答済み"
-        value={`${stats.totalAnsweredCount}/${stats.totalQuestionCount}`}
-        detail="200問中"
-      />
-      <StatCard label="正答率" value={`${stats.accuracy}%`} detail="累計回答ベース" />
-      <StatCard label="苦手問題" value={`${stats.weakCount}`} detail="復習候補" />
-      <StatCard label="今日の初級進捗" value={`${stats.answeredToday}`} detail="回答済み問題数" />
-    </div>
-
-    <div className="beginnerModeGrid">
-      <button type="button" className="beginnerModeCard primary" onClick={() => onStart("daily10")}>
-        <span>今日の10問</span>
-        <strong>苦手・直近不正解・未回答を優先</strong>
-      </button>
-      <button type="button" className="beginnerModeCard" onClick={() => onStart("quick3")}>
-        <span>3分クイズ</span>
-        <strong>5問だけ素早く確認</strong>
-      </button>
-      <button type="button" className="beginnerModeCard" onClick={() => onStart("weakReview")}>
-        <span>苦手復習</span>
-        <strong>2回連続正解で苦手解除</strong>
-      </button>
-      <button type="button" className="beginnerModeCard" onClick={() => onStart("random")}>
-        <span>ランダム出題</span>
-        <strong>全200問から1問ずつ</strong>
-      </button>
-    </div>
-
-    <section className="whitePanel beginnerCategoryPanel">
-      <div className="sectionHeader">
+  return (
+    <section className="page beginnerPage beginnerTopPage">
+      <div className="beginnerTopHero">
         <div>
-          <span className="eyebrow">Category Practice</span>
-          <h2>カテゴリ別練習</h2>
+          <span className="eyebrow">Beginner Choice</span>
+          <h1>{t.beginner.topTitle}</h1>
+          <p>{t.beginner.topLead}</p>
         </div>
-        <RedAccentButton onClick={() => onStart("category", selectedCategory)}>
-          選んだカテゴリで10問
-        </RedAccentButton>
+        <button type="button" className="textButton" onClick={onHome}>
+          {t.beginner.toHome}
+        </button>
       </div>
-      <div className="beginnerCategoryGrid">
-        {Object.entries(categoryLabels).map(([category, label]) => {
-          const typedCategory = category as BeginnerChoiceCategory;
-          const progress = stats.categoryProgress[typedCategory];
-          const percent = progress.total
-            ? Math.round((progress.answered / progress.total) * 100)
-            : 0;
-          return (
-            <button
-              key={category}
-              type="button"
-              className={`beginnerCategoryButton ${
-                selectedCategory === typedCategory ? "isSelected" : ""
-              }`}
-              onClick={() => onSelectCategory(typedCategory)}
-            >
-              <span>{label}</span>
-              <strong>
-                {progress.answered}/{progress.total}
-              </strong>
-              <em style={{ width: `${percent}%` }} />
-            </button>
-          );
-        })}
+
+      {storageWriteFailed ? (
+        <div className="storageNotice" role="alert">
+          <span className="storageNoticeMark" aria-hidden="true">
+            !
+          </span>
+          <span>{t.errors.beginnerStorageWriteFailed}</span>
+        </div>
+      ) : null}
+
+      <div className="homeStats">
+        <StatCard
+          label={t.beginner.statAnswered}
+          value={`${stats.totalAnsweredCount}/${stats.totalQuestionCount}`}
+          detail={t.beginner.statAnsweredDetail(stats.totalQuestionCount)}
+        />
+        <StatCard
+          label={t.beginner.statAccuracy}
+          value={`${stats.accuracy}%`}
+          detail={t.beginner.statAccuracyDetail}
+        />
+        <StatCard
+          label={t.beginner.statWeak}
+          value={`${stats.weakCount}`}
+          detail={t.beginner.statWeakDetail}
+        />
+        <StatCard
+          label={t.beginner.statToday}
+          value={`${stats.answeredToday}`}
+          detail={t.beginner.statTodayDetail}
+        />
       </div>
+
+      {bankAvailable ? (
+        <>
+          <div className="beginnerModeGrid">
+            {modes.map((mode, index) => (
+              <button
+                key={mode}
+                type="button"
+                className={`beginnerModeCard ${index === 0 ? "primary" : ""}`}
+                onClick={() => onStart(mode)}
+              >
+                <span>{t.beginner.modes[mode].title}</span>
+                <strong>{t.beginner.modes[mode].detail}</strong>
+              </button>
+            ))}
+          </div>
+
+          <section className="whitePanel beginnerCategoryPanel">
+            <div className="sectionHeader">
+              <div>
+                <span className="eyebrow">Category Practice</span>
+                <h2>{t.beginner.categoryTitle}</h2>
+              </div>
+              <RedAccentButton onClick={() => onStart("category", selectedCategory)}>
+                {t.beginner.categoryStart}
+              </RedAccentButton>
+            </div>
+            <div className="beginnerCategoryGrid">
+              {beginnerCategories.map((category) => {
+                const progress = stats.categoryProgress[category];
+                const percent = progress.total
+                  ? Math.round((progress.answered / progress.total) * 100)
+                  : 0;
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`beginnerCategoryButton ${
+                      selectedCategory === category ? "isSelected" : ""
+                    }`}
+                    onClick={() => onSelectCategory(category)}
+                  >
+                    <span>{t.beginnerCategories[category]}</span>
+                    <strong>
+                      {progress.answered}/{progress.total}
+                    </strong>
+                    <em style={{ width: `${percent}%` }} />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      ) : (
+        <LocaleContentNotice
+          title={t.beginner.englishNoticeTitle}
+          body={t.beginner.englishNoticeBody}
+          action={t.beginner.englishNoticeAction}
+          onAction={() => setLocale("ja")}
+        />
+      )}
     </section>
-  </section>
-);
+  );
+};
 
 const FeedbackPanel = ({
   question,

@@ -1,47 +1,19 @@
 import { beginnerChoiceQuestionCountsByCategory } from "../data/beginnerChoiceQuestions";
 import { trainingQuestionCountsByCategory, trainingQuestions } from "../data/trainingQuestions";
-import { CautionBox, RedAccentButton, StatCard } from "../components/ui";
-import { beginnerChoiceCategoryLabels } from "../lib/beginnerChoiceLabels";
+import { CautionBox, RedAccentButton } from "../components/ui";
+import { useT } from "../contexts/localeContext";
 import type {
+  BeginnerChoiceCategory,
   BeginnerChoiceMode,
   BeginnerChoiceStats,
   StudyProgress,
+  TrainingCategory,
   TrainingMode,
   TrainingStats,
   ViewId,
 } from "../types";
 
-const intermediateModeCards: Array<{
-  mode: TrainingMode;
-  title: string;
-  detail: string;
-  button: string;
-}> = [
-  {
-    mode: "daily10",
-    title: "今日の10問",
-    detail: "苦手・自己評価・未回答を混ぜて、説明力を毎日戻します。",
-    button: "中級10問",
-  },
-  {
-    mode: "quick3",
-    title: "3分トレーニング",
-    detail: "会議前や移動前に、3問だけ声に出して整えます。",
-    button: "3問だけ",
-  },
-  {
-    mode: "weakReview",
-    title: "苦手だけ復習",
-    detail: "0-1点、または苦手登録した説明問題だけを短く回します。",
-    button: "苦手へ",
-  },
-  {
-    mode: "random",
-    title: "ランダム",
-    detail: "全85問からランダムに10問。日替わりの偏りをなくして回します。",
-    button: "ランダム",
-  },
-];
+const intermediateModes: TrainingMode[] = ["daily10", "quick3", "weakReview", "random"];
 
 export const CockpitPage = ({
   metrics,
@@ -63,89 +35,122 @@ export const CockpitPage = ({
   onStartBeginner: (mode: BeginnerChoiceMode) => void;
   onStartTraining: (mode: TrainingMode) => void;
 }) => {
+  const t = useT();
   const intermediateAverage = trainingStats.averageScore ? `${trainingStats.averageScore}/3` : "-";
+  const beginnerTotal = beginnerStats.totalQuestionCount;
 
   return (
     <section className="page homePage">
       <div className="homeHero">
         <div className="homeHeroCopy">
-          <span className="eyebrow">v0.2 MVP</span>
-          <h1>Manufacturing AI Training</h1>
-          <p>
-            製造業AI導入で必要になる用語、部門の責任分界、KPI、PoC判断を、
-            初級の選択式と中級の説明問題で段階的に固めます。
-          </p>
+          <span className="eyebrow">{t.cockpit.eyebrow}</span>
+          <h1>{t.cockpit.title}</h1>
+          <p>{t.cockpit.lead}</p>
+          <p className="homeHeroSubLead">{t.cockpit.subLead}</p>
           <div className="homeHeroActions">
             <RedAccentButton onClick={() => onStartBeginner("daily10")}>
-              初級を始める
+              {t.cockpit.startBeginner}
             </RedAccentButton>
             <RedAccentButton variant="secondary" onClick={() => onStartTraining("daily10")}>
-              中級10問へ
+              {t.cockpit.startIntermediate}
             </RedAccentButton>
           </div>
         </div>
 
-        <div className="todayPanel" aria-label="今日の進捗">
-          <span>今日の初級進捗</span>
+        <div className="todayPanel" aria-label={t.a11y.todayProgress}>
+          <span>{t.cockpit.todayLabel}</span>
           <strong>{beginnerStats.answeredToday}/10</strong>
           <div className="todayBar" aria-hidden="true">
             <span style={{ width: `${Math.min(beginnerStats.answeredToday * 10, 100)}%` }} />
           </div>
-          <p>初級正答率 {beginnerStats.accuracy}% / 中級平均 {intermediateAverage}</p>
+          <p>{t.cockpit.todaySummary(beginnerStats.accuracy, intermediateAverage)}</p>
         </div>
       </div>
+
+      {/*
+        The responsibility boundary is the product thesis, so it belongs in the first
+        screen rather than in a caution box below six other sections.
+      */}
+      <section className="boundaryPanel">
+        <div className="boundaryPanelHead">
+          <div>
+            <span className="eyebrow">Human approval gates</span>
+            <h2>{t.cockpit.boundaryPanelTitle}</h2>
+          </div>
+          <p>{t.cockpit.boundaryPanelLead}</p>
+        </div>
+        <div className="boundarySplit">
+          <div className="boundaryColumn boundaryColumn-ai">
+            <span>{t.cockpit.boundaryAiSupports}</span>
+            <ul>
+              {t.cockpit.boundaryAiSupportsItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="boundaryColumn boundaryColumn-human">
+            <span>{t.cockpit.boundaryHumanDecides}</span>
+            <ul>
+              {t.cockpit.boundaryHumanDecidesItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <button type="button" className="textButton" onClick={() => onChangeView("align")}>
+          {t.cockpit.boundaryViewDetail}
+        </button>
+      </section>
 
       <div className="learningModeGrid">
         <section className="learningModeCard primary">
           <div>
-            <span className="eyebrow">Beginner</span>
-            <h2>初級編：選択式200問</h2>
-            <p>用語・部門・KPI・AI導入の基礎を4択で固める</p>
+            <span className="eyebrow">{t.cockpit.beginnerEyebrow}</span>
+            <h2>{t.cockpit.beginnerTitle}</h2>
+            <p>{t.cockpit.beginnerLead}</p>
           </div>
           <div className="learningModeMetrics">
-            <span>回答済み {beginnerStats.totalAnsweredCount}/200</span>
-            <span>正答率 {beginnerStats.accuracy}%</span>
-            <span>苦手 {beginnerStats.weakCount}</span>
-            <span>今日 {beginnerStats.answeredToday}</span>
+            <span>{t.cockpit.answered(beginnerStats.totalAnsweredCount, beginnerTotal)}</span>
+            <span>{t.cockpit.accuracy(beginnerStats.accuracy)}</span>
+            <span>{t.cockpit.weak(beginnerStats.weakCount)}</span>
+            <span>{t.cockpit.today(beginnerStats.answeredToday)}</span>
           </div>
-          <RedAccentButton onClick={() => onStartBeginner("daily10")}>初級を始める</RedAccentButton>
+          <RedAccentButton onClick={() => onStartBeginner("daily10")}>
+            {t.cockpit.startBeginnerCard}
+          </RedAccentButton>
         </section>
 
         <section className="learningModeCard">
           <div>
-            <span className="eyebrow">Intermediate</span>
-            <h2>中級編：説明問題85問</h2>
-            <p>30秒・90秒で自分の言葉で説明する</p>
+            <span className="eyebrow">{t.cockpit.intermediateEyebrow}</span>
+            <h2>{t.cockpit.intermediateTitle}</h2>
+            <p>{t.cockpit.intermediateLead}</p>
           </div>
           <div className="learningModeMetrics">
-            <span>回答済み {trainingStats.totalAnsweredCount}/{trainingQuestions.length}</span>
-            <span>自己評価 {intermediateAverage}</span>
-            <span>苦手 {trainingStats.weakCount}</span>
-            <span>今日 {trainingStats.answeredToday}</span>
+            <span>
+              {t.cockpit.answered(trainingStats.totalAnsweredCount, trainingQuestions.length)}
+            </span>
+            <span>{t.cockpit.selfScore(intermediateAverage)}</span>
+            <span>{t.cockpit.weak(trainingStats.weakCount)}</span>
+            <span>{t.cockpit.today(trainingStats.answeredToday)}</span>
           </div>
           <RedAccentButton variant="secondary" onClick={() => onStartTraining("daily10")}>
-            中級を始める
+            {t.cockpit.startIntermediateCard}
           </RedAccentButton>
         </section>
       </div>
 
-      <div className="homeStats">
-        <StatCard
-          label="初級回答済み"
-          value={`${beginnerStats.totalAnsweredCount}`}
-          detail="選択式200問"
-        />
-        <StatCard label="初級正答率" value={`${beginnerStats.accuracy}%`} detail="累計回答" />
-        <StatCard label="初級苦手" value={`${beginnerStats.weakCount}`} detail="復習候補" />
-        <StatCard label="中級説明問題" value={`${trainingQuestions.length}`} detail="85問維持" />
-      </div>
-
       <div className="modeGrid">
-        {intermediateModeCards.map((card) => (
-          <button className="modeCard" key={card.mode} onClick={() => onStartTraining(card.mode)} type="button">
-            <span>{card.title}</span>
-            <strong>{card.detail}</strong>
-            <em>{card.button}</em>
+        {intermediateModes.map((mode) => (
+          <button
+            className="modeCard"
+            key={mode}
+            onClick={() => onStartTraining(mode)}
+            type="button"
+          >
+            <span>{t.cockpit.modes[mode].title}</span>
+            <strong>{t.cockpit.modes[mode].detail}</strong>
+            <em>{t.cockpit.modes[mode].button}</em>
           </button>
         ))}
       </div>
@@ -154,16 +159,16 @@ export const CockpitPage = ({
         <section className="whitePanel compactPanel">
           <div className="sectionHeader">
             <div>
-              <span className="eyebrow">Beginner Set</span>
-              <h2>200問の内訳</h2>
+              <span className="eyebrow">{t.cockpit.beginnerSetEyebrow}</span>
+              <h2>{t.cockpit.beginnerSetTitle}</h2>
             </div>
-            <p>初級は用語暗記だけでなく、部門・KPI・PoC判断につながる基礎判断を扱います。</p>
+            <p>{t.cockpit.beginnerSetLead}</p>
           </div>
           <div className="categoryMeterList">
             {Object.entries(beginnerChoiceQuestionCountsByCategory).map(([category, count]) => (
               <div className="categoryMeter" key={category}>
-                <span>{beginnerChoiceCategoryLabels[category as keyof typeof beginnerChoiceCategoryLabels]}</span>
-                <strong>{count}問</strong>
+                <span>{t.beginnerCategories[category as BeginnerChoiceCategory]}</span>
+                <strong>{t.common.questionUnit(count)}</strong>
               </div>
             ))}
           </div>
@@ -172,16 +177,16 @@ export const CockpitPage = ({
         <section className="whitePanel compactPanel">
           <div className="sectionHeader">
             <div>
-              <span className="eyebrow">Intermediate Set</span>
-              <h2>85問の説明問題</h2>
+              <span className="eyebrow">{t.cockpit.intermediateSetEyebrow}</span>
+              <h2>{t.cockpit.intermediateSetTitle}</h2>
             </div>
-            <p>中級は、AI人材・現場・品質・保全・IT/DX・経営層に説明する力を鍛えます。</p>
+            <p>{t.cockpit.intermediateSetLead}</p>
           </div>
           <div className="categoryMeterList">
             {Object.entries(trainingQuestionCountsByCategory).map(([category, count]) => (
               <div className="categoryMeter" key={category}>
-                <span>{category}</span>
-                <strong>{count}問</strong>
+                <span>{t.trainingCategories[category as TrainingCategory] ?? category}</span>
+                <strong>{t.common.questionUnit(count)}</strong>
               </div>
             ))}
           </div>
@@ -190,32 +195,33 @@ export const CockpitPage = ({
         <section className="whitePanel compactPanel">
           <div className="sectionHeader">
             <div>
-              <span className="eyebrow">Knowledge Assets</span>
-              <h2>用語と構造を確認</h2>
+              <span className="eyebrow">{t.cockpit.knowledgeEyebrow}</span>
+              <h2>{t.cockpit.knowledgeTitle}</h2>
             </div>
-            <p>詰まったときは、KnowledgeとMapで正式名称・責任分界・KPI接続を確認できます。</p>
+            <p>{t.cockpit.knowledgeLead}</p>
           </div>
           <div className="supportActions">
             <button onClick={() => onChangeView("knowledge")} type="button">
-              Knowledgeを確認
+              {t.cockpit.openKnowledge}
             </button>
             <button onClick={() => onChangeView("map")} type="button">
-              Mapで関係を見る
+              {t.cockpit.openMap}
             </button>
             <button onClick={() => onChangeView("align")} type="button">
-              Alignment Canvas
+              {t.cockpit.openAlign}
             </button>
           </div>
           <p className="supportNote">
-            Knowledge progress: {metrics.completedConceptCount}/{metrics.totalConceptCount} (
-            {metrics.knowledge}%)
+            {t.cockpit.knowledgeProgress(
+              metrics.completedConceptCount,
+              metrics.totalConceptCount,
+              metrics.knowledge,
+            )}
           </p>
         </section>
       </div>
 
-      <CautionBox title="今日の判断軸">
-        AIは安全・品質・出荷・停止判断の最終決定者ではありません。説明では、AIが支援すること、人が決めること、残す証跡を分けて話します。
-      </CautionBox>
+      <CautionBox title={t.cockpit.cautionTitle}>{t.cockpit.caution}</CautionBox>
     </section>
   );
 };

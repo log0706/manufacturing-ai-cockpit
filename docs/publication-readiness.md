@@ -1,6 +1,21 @@
 # Publication Readiness Checklist
 
-This project is currently a local canonical source, not a Git repository. For external recruiter review, publish from a new sanitized repository rather than turning this working folder directly into a public source tree.
+**Status as of 2026-07-25:** this is no longer accurate as written. The project *is* a
+public Git repository (`log0706/manufacturing-ai-cockpit`), it builds and passes every
+quality gate on a clean `npm ci`, and the sanitized-publication step described below has
+already happened. The allowlist and the scan steps are kept because they still apply to
+any future re-publication, but the premise sentence — "a local canonical source, not a
+Git repository" — is retained here only as history.
+
+Two items remain genuinely open, and both are tracked in
+[`audit/source-and-live-parity-20260725.md`](audit/source-and-live-parity-20260725.md):
+
+1. Whether the live Netlify page was built from the current `main` is **unverified**; the
+   host was unreachable from the environment used to make that assessment.
+2. Whether a newer non-Git working copy exists on the owner's machine could not be
+   determined from here, so it has not been reconciled.
+
+Do not mark either as done without performing the check.
 
 ## Recommended allowlist
 

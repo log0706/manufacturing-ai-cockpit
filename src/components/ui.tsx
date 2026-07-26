@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Domain } from "../types";
-import { domainJapanese } from "../lib/labels";
+import { useT } from "../contexts/localeContext";
 
 export const ProgressRing = ({
   value,
@@ -42,9 +42,10 @@ export const ProgressRing = ({
   );
 };
 
-export const DomainBadge = ({ domain }: { domain: Domain }) => (
-  <span className={`domainBadge domain-${domain}`}>{domainJapanese[domain]}</span>
-);
+export const DomainBadge = ({ domain }: { domain: Domain }) => {
+  const t = useT();
+  return <span className={`domainBadge domain-${domain}`}>{t.domains[domain]}</span>;
+};
 
 export const RedAccentButton = ({
   children,
@@ -69,15 +70,43 @@ export const RedAccentButton = ({
   </button>
 );
 
-export const CautionBox = ({ children, title = "言いすぎ注意" }: { children: ReactNode; title?: string }) => (
-  <div className="cautionBox">
-    <div className="cautionMark" aria-hidden="true">
-      !
+export const CautionBox = ({ children, title }: { children: ReactNode; title?: string }) => {
+  const t = useT();
+  return (
+    <div className="cautionBox">
+      <div className="cautionMark" aria-hidden="true">
+        !
+      </div>
+      <div>
+        <p className="cautionTitle">{title ?? t.common.cautionTitle}</p>
+        <div className="cautionText">{children}</div>
+      </div>
     </div>
-    <div>
-      <p className="cautionTitle">{title}</p>
-      <div className="cautionText">{children}</div>
-    </div>
+  );
+};
+
+/**
+ * Shown in the English locale on modules whose question bank is still Japanese-only.
+ * Making the gap explicit is deliberate: the alternative would be either a blank panel
+ * or Japanese content inside an English page, and both read as a defect.
+ */
+export const LocaleContentNotice = ({
+  title,
+  body,
+  action,
+  onAction,
+}: {
+  title: string;
+  body: string;
+  action: string;
+  onAction: () => void;
+}) => (
+  <div className="localeNotice" role="note">
+    <p className="localeNoticeTitle">{title}</p>
+    <p className="localeNoticeBody">{body}</p>
+    <button type="button" className="localeNoticeAction" onClick={onAction}>
+      {action}
+    </button>
   </div>
 );
 

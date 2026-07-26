@@ -19,7 +19,10 @@ vite-dev.err.log
 preview-*.log
 .playwright-cli/
 
-# Internal audit / orchestration material that should not be published
+# Internal audit / orchestration material that should not be published.
+# These patterns are anchored to the repository root on purpose: an unanchored
+# `audit/` also matches `docs/audit/`, which silently excluded published audit
+# evidence from commits.
 AGENTS.md
-audit/
-reports/
+/audit/
+/reports/

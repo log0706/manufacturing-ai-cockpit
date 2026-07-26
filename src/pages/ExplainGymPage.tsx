@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { conceptById } from "../data/concepts";
-import { explainDrills } from "../data/explainDrills";
+import { localizedConceptById, localizedDrills } from "../i18n/content";
 import type { ExplainDrill, StudyProgress } from "../types";
 import { CautionBox, RedAccentButton } from "../components/ui";
+import { useLocale } from "../contexts/localeContext";
 
 export const ExplainGymPage = ({
   progress,
@@ -13,6 +13,8 @@ export const ExplainGymPage = ({
   recordExplainScore: (drillId: string, score: number) => void;
   toggleWeakExplain: (drillId: string) => void;
 }) => {
+  const { locale, t } = useLocale();
+  const explainDrills = localizedDrills[locale];
   const [selectedId, setSelectedId] = useState(explainDrills[0].id);
   const [duration, setDuration] = useState<30 | 180>(30);
   const [timeLeft, setTimeLeft] = useState<number>(duration);
@@ -20,7 +22,7 @@ export const ExplainGymPage = ({
   const [showAnswer, setShowAnswer] = useState(false);
   const drill = useMemo(
     () => explainDrills.find((item) => item.id === selectedId) ?? explainDrills[0],
-    [selectedId],
+    [explainDrills, selectedId],
   );
 
   useEffect(() => {
@@ -49,9 +51,9 @@ export const ExplainGymPage = ({
   return (
     <section className="page explainPage">
       <div className="pageHeader">
-        <span className="eyebrow">Explain Gym</span>
-        <h1>30秒で骨子、3分で納得。</h1>
-        <p>相手に伝わる言葉で、AI導入の価値とリスクを説明する練習です。</p>
+        <span className="eyebrow">{t.explain.eyebrow}</span>
+        <h1>{t.explain.title}</h1>
+        <p>{t.explain.lead}</p>
       </div>
 
       <div className="explainLayout">
@@ -66,8 +68,8 @@ export const ExplainGymPage = ({
               <strong>{item.title}</strong>
               <span>
                 {progress.explainScores[item.id]
-                  ? `Score ${progress.explainScores[item.id]}/5`
-                  : "Not scored"}
+                  ? t.explain.score(progress.explainScores[item.id])
+                  : t.common.notScored}
               </span>
             </button>
           ))}
@@ -126,6 +128,8 @@ const ExplainPanel = ({
   onScore: (score: number) => void;
   onToggleWeak: () => void;
 }) => {
+  const { locale, t } = useLocale();
+  const conceptById = localizedConceptById[locale];
   const minutes = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const seconds = String(timeLeft % 60).padStart(2, "0");
 
@@ -133,7 +137,7 @@ const ExplainPanel = ({
     <article className="explainPanel">
       <div className="timerPanel">
         <div className="timerFace">
-          <span>{duration === 30 ? "30 sec" : "3 min"}</span>
+          <span>{duration === 30 ? t.explain.thirtySecFace : t.explain.threeMinFace}</span>
           <strong>
             {minutes}:{seconds}
           </strong>
@@ -144,31 +148,31 @@ const ExplainPanel = ({
             onClick={() => onDuration(30)}
             type="button"
           >
-            30秒
+            {t.explain.thirtySec}
           </button>
           <button
             className={duration === 180 ? "isActive" : ""}
             onClick={() => onDuration(180)}
             type="button"
           >
-            3分
+            {t.explain.threeMin}
           </button>
         </div>
         <div className="timerActions">
           <RedAccentButton disabled={running} onClick={onStart}>
-            スタート
+            {t.explain.startTimer}
           </RedAccentButton>
           <RedAccentButton variant="secondary" onClick={onReset}>
-            もう一度
+            {t.common.retry}
           </RedAccentButton>
           <RedAccentButton variant="ghost" onClick={onShowAnswer}>
-            模範を見る
+            {t.explain.showModel}
           </RedAccentButton>
         </div>
       </div>
 
       <div className="explainContent">
-        <span className="eyebrow">Theme</span>
+        <span className="eyebrow">{t.explain.theme}</span>
         <h2>{drill.title}</h2>
         <div className="keywordCloud">
           {drill.keywords.map((keyword) => (
@@ -180,22 +184,22 @@ const ExplainPanel = ({
         {showAnswer ? (
           <div className="modelAnswer">
             <section>
-              <h3>30秒回答</h3>
+              <h3>{t.explain.modelThirty}</h3>
               <p>{drill.thirtySecondAnswer}</p>
             </section>
             <details className="answerDetails">
-              <summary>3分回答を開く</summary>
+              <summary>{t.explain.modelThree}</summary>
               <p>{drill.threeMinuteAnswer}</p>
             </details>
           </div>
         ) : (
           <div className="speakPrompt">
-            <p>キーワードを見ながら、まずは声に出して説明してください。</p>
+            <p>{t.explain.speakPrompt}</p>
           </div>
         )}
 
         <div className="scorePanel">
-          <span>自己採点 {score ? `${score}/5` : "未入力"}</span>
+          <span>{t.explain.selfScore(score ? `${score}/5` : t.explain.notEntered)}</span>
           <div className="scoreButtons">
             {[1, 2, 3, 4, 5].map((value) => (
               <button
@@ -209,7 +213,7 @@ const ExplainPanel = ({
             ))}
           </div>
           <RedAccentButton variant="secondary" onClick={onToggleWeak}>
-            {isWeak ? "苦手解除" : "苦手登録"}
+            {isWeak ? t.common.unmarkWeak : t.common.markWeak}
           </RedAccentButton>
         </div>
 

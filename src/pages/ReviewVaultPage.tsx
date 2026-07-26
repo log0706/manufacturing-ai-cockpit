@@ -1,5 +1,4 @@
-import { concepts } from "../data/concepts";
-import { explainDrillsById } from "../data/explainDrills";
+import { localizedConcepts, localizedDrillById } from "../i18n/content";
 import { questionsById } from "../data/questions";
 import { trainingQuestionsById } from "../data/trainingQuestions";
 import type {
@@ -14,6 +13,9 @@ import type {
   ViewId,
 } from "../types";
 import { EmptyState, RedAccentButton } from "../components/ui";
+import { useLocale } from "../contexts/localeContext";
+import type { Dictionary } from "../i18n/ja";
+import type { TrainingCategory } from "../types";
 
 const exists = <T,>(value: T | undefined): value is T => value !== undefined;
 
@@ -38,6 +40,9 @@ export const ReviewVaultPage = ({
   onStartTraining: (mode: TrainingMode) => void;
   onResetTrainingProgress: () => void;
 }) => {
+  const { locale, t } = useLocale();
+  const concepts = localizedConcepts[locale];
+  const explainDrillsById = localizedDrillById[locale];
   const weakTrainingItems = Object.values(trainingProgress)
     .filter((item) => item.isWeak || item.lastScore === 0 || item.lastScore === 1)
     .map((item) => ({ progress: item, question: trainingQuestionsById[item.questionId] }))
@@ -68,15 +73,15 @@ export const ReviewVaultPage = ({
   return (
     <section className="page reviewPage">
       <div className="pageHeader">
-        <span className="eyebrow">Review Vault</span>
-        <h1>戻るべきカードだけ、短く戻る。</h1>
-        <p>説明カードの0〜1点、苦手登録、旧ドリルの誤答、ブックマークをまとめて見ます。</p>
+        <span className="eyebrow">{t.review.eyebrow}</span>
+        <h1>{t.review.title}</h1>
+        <p>{t.review.lead}</p>
       </div>
 
       <div className="reviewGrid">
         <ReviewSection
-          title="説明カードの苦手"
-          action="苦手復習を始める"
+          title={t.review.weakTrainingTitle}
+          action={t.review.weakTrainingAction}
           onAction={() => onStartTraining("weakReview")}
         >
           {weakTrainingItems.length ? (
@@ -84,33 +89,45 @@ export const ReviewVaultPage = ({
               <div className="reviewItem" key={question.id}>
                 <strong>{question.title}</strong>
                 <p>
-                  {question.category} / 前回 {item.lastScore ?? "-"}点 / 次回 {item.nextReviewAt ?? "-"}
+                  {t.review.weakTrainingMeta(
+                    t.trainingCategories[question.category as TrainingCategory] ??
+                      question.category,
+                    String(item.lastScore ?? "-"),
+                    item.nextReviewAt ?? "-",
+                  )}
                 </p>
               </div>
             ))
           ) : (
             <EmptyState
-              title="説明カードの苦手はありません"
-              text="0〜1点、または後で復習を押したカードがここに集まります。"
+              title={t.review.weakTrainingEmpty}
+              text={t.review.weakTrainingEmptyText}
             />
           )}
         </ReviewSection>
 
         <ReviewSection
-          title="v0.2 学習データ"
-          action="この端末の学習データを削除"
+          title={t.review.dataTitle}
+          action={t.review.dataAction}
           onAction={onResetTrainingProgress}
         >
           <div className="reviewItem">
-            <strong>{trainingStats.totalAnsweredCount}問に回答済み</strong>
+            <strong>{t.review.dataAnswered(trainingStats.totalAnsweredCount)}</strong>
             <p>
-              連続{trainingStats.streak}日 / 今週{trainingStats.weekAnswerCount}問 / 苦手
-              {trainingStats.weakCount}問
+              {t.review.dataMeta(
+                trainingStats.streak,
+                trainingStats.weekAnswerCount,
+                trainingStats.weakCount,
+              )}
             </p>
           </div>
         </ReviewSection>
 
-        <ReviewSection title="間違えた問題" action="Drill Deckへ" onAction={() => onChangeView("drill")}>
+        <ReviewSection
+          title={t.review.wrongTitle}
+          action={t.review.toDrill}
+          onAction={() => onChangeView("drill")}
+        >
           {wrongQuestions.length ? (
             wrongQuestions.map((question) => (
               <div className="reviewItem" key={question.id}>
@@ -119,11 +136,15 @@ export const ReviewVaultPage = ({
               </div>
             ))
           ) : (
-            <EmptyState title="まだ誤答はありません" text="Drill Deckを進めるとここに表示されます。" />
+            <EmptyState title={t.review.wrongEmpty} text={t.review.wrongEmptyText} />
           )}
         </ReviewSection>
 
-        <ReviewSection title="苦手登録した問題" action="Drill Deckへ" onAction={() => onChangeView("drill")}>
+        <ReviewSection
+          title={t.review.weakQuestionsTitle}
+          action={t.review.toDrill}
+          onAction={() => onChangeView("drill")}
+        >
           {weakQuestions.length ? (
             weakQuestions.map((question) => (
               <div className="reviewItem withAction" key={question.id}>
@@ -132,16 +153,23 @@ export const ReviewVaultPage = ({
                   <p>{question.category}</p>
                 </div>
                 <button onClick={() => toggleWeakQuestion(question.id)} type="button">
-                  解除
+                  {t.common.release}
                 </button>
               </div>
             ))
           ) : (
-            <EmptyState title="苦手問題は未登録" text="迷った問題を苦手に追加すると復習しやすくなります。" />
+            <EmptyState
+              title={t.review.weakQuestionsEmpty}
+              text={t.review.weakQuestionsEmptyText}
+            />
           )}
         </ReviewSection>
 
-        <ReviewSection title="説明テーマ" action="Explain Gymへ" onAction={() => onChangeView("explain")}>
+        <ReviewSection
+          title={t.review.explainTitle}
+          action={t.review.toExplain}
+          onAction={() => onChangeView("explain")}
+        >
           {weakExplains.length ? (
             weakExplains.map((drill) => (
               <div className="reviewItem withAction" key={drill.id}>
@@ -150,16 +178,20 @@ export const ReviewVaultPage = ({
                   <p>{drill.caution}</p>
                 </div>
                 <button onClick={() => toggleWeakExplain(drill.id)} type="button">
-                  解除
+                  {t.common.release}
                 </button>
               </div>
             ))
           ) : (
-            <EmptyState title="低スコアテーマはありません" text="自己採点1から2のテーマがここに集まります。" />
+            <EmptyState title={t.review.explainEmpty} text={t.review.explainEmptyText} />
           )}
         </ReviewSection>
 
-        <ReviewSection title="ブックマーク" action="Knowledgeへ" onAction={() => onChangeView("knowledge")}>
+        <ReviewSection
+          title={t.review.bookmarkTitle}
+          action={t.review.toKnowledge}
+          onAction={() => onChangeView("knowledge")}
+        >
           {bookmarked.length ? (
             bookmarked.map((concept) => (
               <div className="reviewItem withAction" key={concept.id}>
@@ -168,20 +200,24 @@ export const ReviewVaultPage = ({
                   <p>{concept.oneLine}</p>
                 </div>
                 <button onClick={() => toggleBookmark(concept.id)} type="button">
-                  解除
+                  {t.common.release}
                 </button>
               </div>
             ))
           ) : (
-            <EmptyState title="ブックマークは空" text="重要な知識カードを保存できます。" />
+            <EmptyState title={t.review.bookmarkEmpty} text={t.review.bookmarkEmptyText} />
           )}
         </ReviewSection>
 
-        <ReviewSection title="未学習ブース" action="Knowledgeへ" onAction={() => onChangeView("knowledge")}>
+        <ReviewSection
+          title={t.review.unlearnedTitle}
+          action={t.review.toKnowledge}
+          onAction={() => onChangeView("knowledge")}
+        >
           {unlearned.map((concept) => (
             <div className="reviewItem" key={concept.id}>
               <strong>{concept.title}</strong>
-              <p>{concept.booth}</p>
+              <p>{t.booths[concept.booth as keyof Dictionary["booths"]] ?? concept.booth}</p>
             </div>
           ))}
         </ReviewSection>

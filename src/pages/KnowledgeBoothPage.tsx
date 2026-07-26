@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { concepts } from "../data/concepts";
+import { localizedConcepts } from "../i18n/content";
 import { officialNames } from "../lib/officialNames";
 import type { Concept, StudyProgress } from "../types";
 import { CautionBox, DomainBadge, EmptyState, ProgressRing, RedAccentButton } from "../components/ui";
 import { ConceptDiagramView } from "../components/ConceptDiagramView";
+import { useLocale, useT } from "../contexts/localeContext";
+import type { Dictionary } from "../i18n/ja";
 
 export const KnowledgeBoothPage = ({
   progress,
@@ -14,46 +16,68 @@ export const KnowledgeBoothPage = ({
   completeConcept: (conceptId: string) => void;
   toggleBookmark: (conceptId: string) => void;
 }) => {
-  const booths = useMemo(() => Array.from(new Set(concepts.map((concept) => concept.booth))), []);
+  const { locale, t } = useLocale();
+  const concepts = localizedConcepts[locale];
+  const booths = useMemo(
+    () => Array.from(new Set(concepts.map((concept) => concept.booth))),
+    [concepts],
+  );
   const [activeBooth, setActiveBooth] = useState(booths[0]);
-  const [selectedConcept, setSelectedConcept] = useState<Concept | null>(
-    concepts.find((concept) => concept.booth === booths[0]) ?? null,
+  const [selectedId, setSelectedId] = useState<string | null>(
+    concepts.find((concept) => concept.booth === booths[0])?.id ?? null,
   );
   const boothConcepts = concepts.filter((concept) => concept.booth === activeBooth);
+  // Tracked by id rather than by object so the selection survives a locale switch,
+  // which replaces every concept object with its translated counterpart.
+  const selectedConcept = concepts.find((concept) => concept.id === selectedId) ?? null;
 
-  const boothProgress = (booth: string) => {
+  const boothCounts = (booth: string) => {
     const targets = concepts.filter((concept) => concept.booth === booth);
     const done = targets.filter((concept) => progress.completedConceptIds.includes(concept.id));
-    return targets.length ? Math.round((done.length / targets.length) * 100) : 0;
+    return { done: done.length, total: targets.length };
   };
+
+  const boothProgress = (booth: string) => {
+    const { done, total } = boothCounts(booth);
+    return total ? Math.round((done / total) * 100) : 0;
+  };
+
+  const boothLabel = (booth: string) =>
+    t.booths[booth as keyof Dictionary["booths"]] ?? booth.replace(" Booth", "");
 
   const handleBooth = (booth: string) => {
     setActiveBooth(booth);
-    setSelectedConcept(concepts.find((concept) => concept.booth === booth) ?? null);
+    setSelectedId(concepts.find((concept) => concept.booth === booth)?.id ?? null);
   };
 
   return (
     <section className="page knowledgePage">
       <div className="pageHeader">
-        <span className="eyebrow">Knowledge Booth</span>
-        <h1>用語を、会話で使える判断軸へ。</h1>
-        <p>一言定義、関係部署、KPI、AIとの接点、注意点をセットで覚えます。</p>
+        <span className="eyebrow">{t.knowledge.eyebrow}</span>
+        <h1>{t.knowledge.title}</h1>
+        <p>{t.knowledge.lead}</p>
       </div>
 
-      <div className="boothTabs" role="tablist" aria-label="Knowledge booth categories">
-        {booths.map((booth) => (
-          <button
-            className={`boothTab ${activeBooth === booth ? "isActive" : ""}`}
-            key={booth}
-            onClick={() => handleBooth(booth)}
-            role="tab"
-            aria-selected={activeBooth === booth}
-            type="button"
-          >
-            <ProgressRing value={boothProgress(booth)} size={46} label={booth} />
-            <span>{booth.replace(" Booth", "")}</span>
-          </button>
-        ))}
+      <div className="boothTabs" role="tablist" aria-label={t.a11y.boothTabs}>
+        {booths.map((booth) => {
+          const { done, total } = boothCounts(booth);
+          return (
+            <button
+              className={`boothTab ${activeBooth === booth ? "isActive" : ""}`}
+              key={booth}
+              onClick={() => handleBooth(booth)}
+              role="tab"
+              aria-selected={activeBooth === booth}
+              type="button"
+            >
+              <ProgressRing value={boothProgress(booth)} size={46} />
+              <span className="boothTabText">
+                <strong>{boothLabel(booth)}</strong>
+                <small>{t.knowledge.boothProgress(done, total)}</small>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="learningLayout">
@@ -63,21 +87,25 @@ export const KnowledgeBoothPage = ({
             const bookmarked = progress.bookmarkedConceptIds.includes(concept.id);
             return (
               <button
-                className={`conceptCard ${selectedConcept?.id === concept.id ? "isSelected" : ""}`}
+                className={`conceptCard ${selectedConcept?.id === concept.id ? "isSelected" : ""} ${
+                  done ? "isDone" : ""
+                }`}
                 key={concept.id}
-                onClick={() => setSelectedConcept(concept)}
+                onClick={() => setSelectedId(concept.id)}
                 type="button"
               >
                 <div className="conceptCardTop">
                   <DomainBadge domain={concept.domain} />
-                  <span>{done ? "Complete" : "Open"}</span>
+                  <span className={`statePill ${done ? "statePill-done" : "statePill-open"}`}>
+                    {done ? t.common.complete : t.common.open}
+                  </span>
                 </div>
                 <strong>{concept.title}</strong>
                 {officialNames[concept.id] ? (
                   <span className="conceptOfficialName">{officialNames[concept.id]}</span>
                 ) : null}
                 <p>{concept.oneLine}</p>
-                {bookmarked ? <small>Bookmarked</small> : null}
+                {bookmarked ? <small>{t.common.bookmarked}</small> : null}
               </button>
             );
           })}
@@ -103,49 +131,49 @@ export const KnowledgeBoothPage = ({
               <p className="leadText">{selectedConcept.oneLine}</p>
               <div className="detailList">
                 <div>
-                  <span>なぜ重要か</span>
+                  <span>{t.knowledge.whyImportant}</span>
                   <p>{selectedConcept.whyImportant}</p>
                 </div>
                 <div>
-                  <span>関係部署</span>
+                  <span>{t.knowledge.departments}</span>
                   <p>{selectedConcept.departments.join(" / ")}</p>
                 </div>
                 <div>
-                  <span>関連KPI</span>
+                  <span>{t.knowledge.kpis}</span>
                   <p>{selectedConcept.kpis.join(" / ")}</p>
                 </div>
                 <div>
-                  <span>AIとの接点</span>
+                  <span>{t.knowledge.aiTouchpoint}</span>
                   <p>{selectedConcept.aiTouchpoint}</p>
                 </div>
               </div>
               <ConceptJuniorSection concept={selectedConcept} />
               <CautionBox>{selectedConcept.caution}</CautionBox>
               <div className="miniQuestion">
-                <span>ミニ確認</span>
+                <span>{t.knowledge.miniQuestion}</span>
                 <strong>{selectedConcept.miniQuestion.prompt}</strong>
                 <p>{selectedConcept.miniQuestion.answer}</p>
               </div>
               <details className="answerDetails">
-                <summary>30秒で説明するなら</summary>
+                <summary>{t.knowledge.thirtySecond}</summary>
                 <p>{selectedConcept.thirtySecond}</p>
               </details>
               <div className="detailActions">
                 <RedAccentButton onClick={() => completeConcept(selectedConcept.id)}>
-                  理解済みにする
+                  {t.knowledge.markComplete}
                 </RedAccentButton>
                 <RedAccentButton
                   variant="secondary"
                   onClick={() => toggleBookmark(selectedConcept.id)}
                 >
                   {progress.bookmarkedConceptIds.includes(selectedConcept.id)
-                    ? "ブックマーク解除"
-                    : "ブックマーク"}
+                    ? t.common.unbookmark
+                    : t.common.bookmark}
                 </RedAccentButton>
               </div>
             </>
           ) : (
-            <EmptyState title="カードを選択" text="左のブースから知識カードを開いてください。" />
+            <EmptyState title={t.common.emptySelectCard} text={t.common.emptySelectCardText} />
           )}
         </aside>
       </div>
@@ -154,11 +182,13 @@ export const KnowledgeBoothPage = ({
 };
 
 /**
- * 「中学生でもわかる」強化セクション。
- * 一言でいうと → 概念図 → 利用シーン → たとえばこう使う → AIとどうつながるか の順で表示する。
- * データが無い用語（部門・リスク等）では何も描画しない（既存カードを壊さない）。
+ * Plain-language section: one-line summary, diagram, when it comes up, an example, and
+ * how AI connects. Renders nothing for concepts without this data (departments, risks),
+ * which also means an untranslated enrichment is dropped rather than appearing in
+ * Japanese inside the English locale.
  */
 const ConceptJuniorSection = ({ concept }: { concept: Concept }) => {
+  const t = useT();
   const hasJunior =
     concept.juniorSummary ||
     concept.conceptDiagram ||
@@ -169,24 +199,24 @@ const ConceptJuniorSection = ({ concept }: { concept: Concept }) => {
   if (!hasJunior) return null;
 
   return (
-    <div className="juniorSection" aria-label="中学生でもわかる説明">
+    <div className="juniorSection" aria-label={t.a11y.juniorSection}>
       {concept.juniorSummary ? (
         <div className="juniorSummary">
-          <span className="juniorLabel">一言でいうと</span>
+          <span className="juniorLabel">{t.knowledge.juniorSummary}</span>
           <p>{concept.juniorSummary}</p>
         </div>
       ) : null}
 
       {concept.conceptDiagram ? (
         <div className="juniorBlock">
-          <span className="juniorLabel">概念図</span>
+          <span className="juniorLabel">{t.knowledge.juniorDiagram}</span>
           <ConceptDiagramView diagram={concept.conceptDiagram} />
         </div>
       ) : null}
 
       {concept.usageScene?.length ? (
         <div className="juniorBlock">
-          <span className="juniorLabel">利用シーン</span>
+          <span className="juniorLabel">{t.knowledge.juniorUsage}</span>
           <ul className="juniorList">
             {concept.usageScene.map((scene) => (
               <li key={scene}>{scene}</li>
@@ -197,7 +227,7 @@ const ConceptJuniorSection = ({ concept }: { concept: Concept }) => {
 
       {concept.exampleScene?.length ? (
         <div className="juniorBlock">
-          <span className="juniorLabel">たとえばこう使う</span>
+          <span className="juniorLabel">{t.knowledge.juniorExample}</span>
           <ul className="juniorList">
             {concept.exampleScene.map((scene) => (
               <li key={scene}>{scene}</li>
@@ -208,7 +238,7 @@ const ConceptJuniorSection = ({ concept }: { concept: Concept }) => {
 
       {concept.aiConnection ? (
         <div className="juniorBlock juniorAiConnection">
-          <span className="juniorLabel">AIとどうつながるか</span>
+          <span className="juniorLabel">{t.knowledge.juniorAiConnection}</span>
           <p>{concept.aiConnection}</p>
         </div>
       ) : null}

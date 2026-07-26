@@ -6,6 +6,7 @@ import {
   FUGU_REVIEW_TIMEOUT_MS,
   FUGU_USER_ANSWER_MAX_LENGTH,
 } from "./fuguReviewSchema";
+import { FuguReviewError } from "./fuguReviewError";
 
 export const FUGU_REVIEW_CONSENT_KEY = "fuguReviewConsentAccepted";
 
@@ -57,7 +58,7 @@ const writeCachedReview = (cacheKey: string, result: FuguReviewResult) => {
   try {
     window.localStorage.setItem(cacheKey, JSON.stringify(result));
   } catch {
-    // キャッシュは利便性だけなので、保存失敗は講評表示を妨げない。
+    // The cache is only a convenience, so a write failure must not block the review.
   }
 };
 
@@ -67,7 +68,7 @@ const parseReviewResponse = async (response: Response): Promise<unknown> => {
   try {
     return JSON.parse(text);
   } catch {
-    throw new Error("FUGU講評のJSONを解析できませんでした。");
+    throw new FuguReviewError("jsonParse");
   }
 };
 
@@ -81,10 +82,10 @@ export const requestFuguReview = async ({
 }: FuguReviewRequest): Promise<FuguReviewResponse> => {
   const normalizedAnswer = normalizeFuguAnswer(userAnswer);
   if (!normalizedAnswer) {
-    throw new Error("講評する回答を入力してください。");
+    throw new FuguReviewError("emptyAnswer");
   }
   if (normalizedAnswer.length > FUGU_USER_ANSWER_MAX_LENGTH) {
-    throw new Error(`回答は${FUGU_USER_ANSWER_MAX_LENGTH}文字以内にしてください。`);
+    throw new FuguReviewError("tooLong", { max: FUGU_USER_ANSWER_MAX_LENGTH });
   }
 
   const answerHash = hashFuguAnswer(normalizedAnswer);
@@ -132,14 +133,14 @@ export const requestFuguReview = async ({
 
     const parsed = await parseReviewResponse(response);
     if (!response.ok) {
-      const message =
+      const serverMessage =
         typeof parsed === "object" &&
         parsed !== null &&
         "error" in parsed &&
         typeof parsed.error === "string"
           ? parsed.error
-          : "FUGU講評を取得できませんでした。";
-      throw new Error(message);
+          : undefined;
+      throw new FuguReviewError("failed", { serverMessage });
     }
 
     const rawResult =
@@ -151,7 +152,7 @@ export const requestFuguReview = async ({
     return { result, cacheKey, fromCache: false };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("FUGU講評がタイムアウトしました。時間を置いて再実行してください。");
+      throw new FuguReviewError("timeout");
     }
     throw error;
   } finally {
