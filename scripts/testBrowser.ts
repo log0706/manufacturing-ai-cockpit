@@ -339,7 +339,11 @@ const run = async (browser: Browser) => {
     await page.waitForTimeout(400);
     expectTrue("a beginner session starts", await page.locator(".choiceCardList").isVisible());
 
-    await page.locator(".choiceCard").first().click();
+    // 選択肢テキストには用語チップ（button.glossaryChip）が埋まっていて、チップは
+    // クリックを stopPropagation する（辞書を開くのが正しい挙動）。カード中央を
+    // クリックするとフォント幅次第でチップに当たり、回答が成立しない。回答の意図が
+    // 変わらず、チップに当たらない .choiceLetter を押す。
+    await page.locator(".choiceCard").first().locator(".choiceLetter").click();
     await page.waitForTimeout(350);
     expectTrue("answering reveals the confirmation panel", await page.locator(".feedbackPanel").isVisible());
     expectTrue(
